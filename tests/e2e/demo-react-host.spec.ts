@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test'
 
+const reactBaseUrl =
+  process.env.PLAYWRIGHT_REACT_BASE_URL ?? 'http://127.0.0.1:44174'
+
 test('react host mounts the shared editor contract', async ({ page }) => {
-  await page.goto('http://127.0.0.1:4174')
+  await page.goto(reactBaseUrl)
 
   await expect(page.getByText('Use React as the host shell, not as the graph engine.')).toBeVisible()
   await expect(page.locator('workflow-editor')).toHaveCount(1)

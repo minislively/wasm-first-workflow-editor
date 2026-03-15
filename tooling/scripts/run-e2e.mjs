@@ -23,10 +23,11 @@ const children = []
 try {
   for (const server of servers) {
     const child = spawn(server.command, server.args, {
-      stdio: 'inherit',
+      stdio: ['ignore', 'pipe', 'pipe'],
       env: process.env,
-      shell: true,
     })
+    child.stdout.on('data', (chunk) => process.stdout.write(chunk))
+    child.stderr.on('data', (chunk) => process.stderr.write(chunk))
     children.push(child)
   }
 
@@ -34,9 +35,7 @@ try {
 
   await runPlaywright()
 } finally {
-  for (const child of children) {
-    child.kill('SIGTERM')
-  }
+  await Promise.all(children.map(stopChild))
 }
 
 async function waitForHttp(url) {
@@ -61,13 +60,14 @@ async function waitForHttp(url) {
 function runPlaywright() {
   return new Promise((resolve, reject) => {
     const child = spawn('pnpm', ['exec', 'playwright', 'test'], {
-      stdio: 'inherit',
+      stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
         PLAYWRIGHT_MANUAL_SERVERS: '1',
       },
-      shell: true,
     })
+    child.stdout.on('data', (chunk) => process.stdout.write(chunk))
+    child.stderr.on('data', (chunk) => process.stderr.write(chunk))
 
     child.on('exit', (code) => {
       if (code === 0) {
@@ -77,5 +77,22 @@ function runPlaywright() {
 
       reject(new Error(`Playwright exited with code ${code}`))
     })
+  })
+}
+
+function stopChild(child) {
+  return new Promise((resolve) => {
+    if (child.killed || child.exitCode !== null) {
+      resolve()
+      return
+    }
+
+    child.once('exit', () => resolve())
+    child.kill('SIGTERM')
+    setTimeout(() => {
+      if (child.exitCode === null) {
+        child.kill('SIGKILL')
+      }
+    }, 3000)
   })
 }

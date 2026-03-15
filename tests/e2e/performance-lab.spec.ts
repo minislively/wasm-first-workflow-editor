@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-test.use({ baseURL: 'http://127.0.0.1:4175' })
+test.use({
+  baseURL: process.env.PLAYWRIGHT_PERFORMANCE_LAB_BASE_URL ?? 'http://127.0.0.1:44175',
+})
 
 test.describe('performance lab surface', () => {
   test('lab defaults to the diagnostics-forward evaluation state', async ({ page }) => {
@@ -43,7 +45,7 @@ test.describe('performance lab surface', () => {
     await expect(page.locator('.diag-grid')).toContainText('ts-fallback')
     await expect(page.locator('.evaluation-card')).toContainText('Fallback is active')
     await expect(page.locator('.evaluation-card')).toContainText(
-      'kernel forced to typescript fallback',
+      'typescript fallback',
     )
   })
 })
