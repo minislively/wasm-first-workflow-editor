@@ -68,6 +68,7 @@ export type ThemeTokens = {
 }
 
 export type RendererBackend = 'webgl' | 'canvas2d'
+export type WasmRuntimeSource = 'rust-wasm' | 'typescript-fallback'
 
 export type SceneSnapshot = {
   graph: GraphDocument
@@ -99,12 +100,13 @@ export type EngineCommand =
   | { type: 'dispose' }
 
 export type EngineEvent =
-  | { type: 'ready'; backend: RendererBackend }
+  | { type: 'ready'; backend: RendererBackend; kernelSource: WasmRuntimeSource }
   | { type: 'selection'; selected: SelectionSummary[] }
   | { type: 'change'; graph: GraphDocument }
   | {
       type: 'stats'
       backend: RendererBackend
+      kernelSource: WasmRuntimeSource
       nodeCount: number
       edgeCount: number
       zoom: number

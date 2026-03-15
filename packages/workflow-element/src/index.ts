@@ -192,7 +192,7 @@ export class WorkflowEditorElement extends HTMLElement {
     switch (event.type) {
       case 'ready':
         if (this.statusBadge) {
-          this.statusBadge.textContent = `${event.backend} ready`
+          this.statusBadge.textContent = `${event.backend} · ${event.kernelSource}`
         }
         this.dispatchEvent(new CustomEvent('ready', { detail: event }))
         break
@@ -207,7 +207,7 @@ export class WorkflowEditorElement extends HTMLElement {
         break
       case 'stats':
         if (this.statsBadge) {
-          this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x`
+          this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.kernelSource}`
         }
         break
       case 'error':

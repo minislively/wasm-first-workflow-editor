@@ -70,6 +70,10 @@ export class EngineController {
     this.theme = mergeTheme(initialTheme)
     void loadWasmKernel().then((kernel) => {
       this.wasmKernel = kernel
+      if (this.renderer) {
+        this.emitRuntimeReady()
+        this.render(false)
+      }
     })
   }
 
@@ -80,7 +84,7 @@ export class EngineController {
         this.theme = mergeTheme(command.theme)
         this.size = command.size
         this.mountRenderer()
-        this.emit({ type: 'ready', backend: this.backend })
+        this.emitRuntimeReady()
         this.emitSelection()
         this.render(true)
         break
@@ -199,6 +203,14 @@ export class EngineController {
     })
   }
 
+  private emitRuntimeReady() {
+    this.emit({
+      type: 'ready',
+      backend: this.backend,
+      kernelSource: this.wasmKernel.source,
+    })
+  }
+
   private render(emitChange: boolean) {
     this.renderer?.render({
       graph: this.graph,
@@ -217,6 +229,7 @@ export class EngineController {
     this.emit({
       type: 'stats',
       backend: this.backend,
+      kernelSource: this.wasmKernel.source,
       nodeCount: this.graph.nodes.length,
       edgeCount: this.graph.edges.length,
       zoom: this.viewport.zoom,
