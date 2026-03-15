@@ -1,0 +1,16 @@
+{
+  "name": "@minislively/workflow-engine-worker",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@minislively/workflow-core": "workspace:*",
+    "@minislively/workflow-editor-shell": "workspace:*",
+    "@minislively/workflow-renderer-canvas": "workspace:*",
+    "@minislively/workflow-renderer-webgl": "workspace:*",
+    "@minislively/workflow-types": "workspace:*",
+    "@minislively/workflow-wasm-core": "workspace:*"
+  }
+}

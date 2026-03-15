@@ -1,0 +1,11 @@
+{
+  "name": "@minislively/workflow-nodepack-basic",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@minislively/workflow-types": "workspace:*"
+  }
+}

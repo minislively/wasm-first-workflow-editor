@@ -1,0 +1,24 @@
+{
+  "name": "wasm-first-workflow-editor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "build": "pnpm --filter demo-web-component build && pnpm --filter demo-react-host build",
+    "demo:web-component": "pnpm --filter demo-web-component dev",
+    "demo:react": "pnpm --filter demo-react-host dev",
+    "bench:fixtures": "node tooling/scripts/generate-fixtures.mjs",
+    "bench:smoke": "node tooling/scripts/bench-smoke.mjs",
+    "lint": "tsc --noEmit -p tooling/tsconfig.workspace.json",
+    "typecheck": "tsc --noEmit -p tooling/tsconfig.workspace.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,48 @@
+:root {
+  color: #ecf3ff;
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.18), transparent 22rem),
+    linear-gradient(180deg, #08111f, #020617 58%);
+  font-family: "IBM Plex Sans", "Space Grotesk", system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: min(1440px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  font-size: clamp(2.3rem, 4vw, 4.1rem);
+  line-height: 0.98;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+p {
+  margin: 0;
+  color: #9fb4cf;
+  line-height: 1.6;
+}

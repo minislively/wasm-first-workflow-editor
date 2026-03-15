@@ -1,0 +1,54 @@
+# WASM-First Workflow Editor
+
+Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
+
+## What ships in this baseline
+
+- Runnable `Web Component` demo
+- Runnable `React` host demo
+- Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
+- Architecture, adoption, and performance-boundary docs
+
+## Product rule
+
+`Engine is strict, shell is flexible.`
+
+- The graph scene is treated as a rendering engine.
+- Product teams are expected to customize shell, inspector, toolbar, theming, and host layout.
+- Product teams are not expected to replace the graph hot path with arbitrary DOM-heavy node bodies.
+
+## Quick start
+
+```bash
+pnpm install
+pnpm bench:fixtures
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm demo:web-component
+```
+
+In another terminal:
+
+```bash
+pnpm demo:react
+```
+
+## Package map
+
+- `@minislively/workflow-types`: shared protocol and graph types
+- `@minislively/workflow-core`: graph helpers, hit testing, viewport math
+- `@minislively/workflow-wasm-core`: placeholder seam for Rust/WASM compute kernels
+- `@minislively/workflow-engine-worker`: engine controller for worker and main-thread fallback
+- `@minislively/workflow-renderer-webgl`: primary GPU renderer
+- `@minislively/workflow-renderer-canvas`: fallback canvas renderer
+- `@minislively/workflow-editor-shell`: shell theme tokens and styling contract
+- `@minislively/workflow-element`: primary `Web Component` integration surface
+- `@minislively/workflow-react`: secondary React wrapper
+- `@minislively/workflow-nodepack-basic`: starter graph fixture and node catalog
+
+## Docs
+
+- [Architecture](./docs/architecture/overview.md)
+- [Web Component adoption](./docs/adoption/web-component.md)
+- [Performance boundary](./docs/performance/boundaries.md)
