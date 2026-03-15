@@ -1,0 +1,12 @@
+{
+  "name": "@minislively/workflow-demo-support",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@minislively/workflow-nodepack-basic": "workspace:*",
+    "@minislively/workflow-types": "workspace:*"
+  }
+}

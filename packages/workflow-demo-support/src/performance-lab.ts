@@ -1,16 +1,7 @@
 import type { RuntimePreferences } from '@minislively/workflow-types'
 
-import type { DemoSurfaceState } from './surface-state'
-
-export type DiagnosticsState = {
-  backend: string
-  kernelSource: string
-  nodeCount: number
-  edgeCount: number
-  zoom: number
-  fallbackReason: string | null
-  preferences: RuntimePreferences
-}
+import type { DiagnosticsState } from './diagnostics'
+import type { FixtureKey, PerformanceLabState } from './fixtures'
 
 type RuntimeResolution = {
   requested: string
@@ -28,7 +19,7 @@ export type PerformanceLabSummary = {
 }
 
 export function createPerformanceLabSummary(
-  state: DemoSurfaceState,
+  state: PerformanceLabState,
   diagnostics: DiagnosticsState,
 ): PerformanceLabSummary {
   const renderer = resolveRenderer(state, diagnostics)
@@ -48,7 +39,7 @@ export function createPerformanceLabSummary(
 }
 
 function resolveRenderer(
-  state: DemoSurfaceState,
+  state: PerformanceLabState,
   diagnostics: DiagnosticsState,
 ): RuntimeResolution {
   const active = diagnostics.backend === 'pending' ? 'pending' : diagnostics.backend
@@ -81,14 +72,15 @@ function resolveRenderer(
 }
 
 function resolveKernel(
-  state: DemoSurfaceState,
+  state: PerformanceLabState,
   diagnostics: DiagnosticsState,
 ): RuntimeResolution {
-  const active = diagnostics.kernelSource === 'pending'
-    ? 'pending'
-    : diagnostics.kernelSource === 'rust-wasm'
-      ? 'wasm'
-      : 'ts-fallback'
+  const active =
+    diagnostics.kernelSource === 'pending'
+      ? 'pending'
+      : diagnostics.kernelSource === 'rust-wasm'
+        ? 'wasm'
+        : 'ts-fallback'
 
   if (state.kernelPreference === 'auto') {
     return {
@@ -114,7 +106,7 @@ function resolveKernel(
 }
 
 function createEvaluationNotes(
-  state: DemoSurfaceState,
+  state: PerformanceLabState,
   diagnostics: DiagnosticsState,
   renderer: RuntimeResolution,
   kernel: RuntimeResolution,
@@ -139,7 +131,13 @@ function createEvaluationNotes(
   return notes
 }
 
-function describeFixture(fixture: DemoSurfaceState['fixture']) {
+export function getActiveKernelPreference(
+  diagnostics: DiagnosticsState,
+): RuntimePreferences['kernelPreference'] {
+  return diagnostics.kernelSource === 'rust-wasm' ? 'wasm' : 'ts-fallback'
+}
+
+export function describeFixture(fixture: FixtureKey) {
   switch (fixture) {
     case 'basic':
       return 'basic fixture for product feel and onboarding'

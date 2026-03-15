@@ -33,7 +33,7 @@ Most node editors let shell convenience leak into the graph hot path. This repos
 
 ## Product Demo
 
-Use this surface when you want to understand the editor as a product:
+Use `apps/demo-web-component` when you want to understand the editor as a product:
 
 - small default graph
 - direct editing feel
@@ -48,9 +48,9 @@ pnpm demo:web-component
 
 ## Performance Lab
 
-Use this surface when you want to evaluate runtime behavior:
+Use `apps/performance-lab` when you want to evaluate runtime behavior:
 
-- explicit `Product Demo / Performance Lab` mode split inside the demo surface
+- dedicated app instead of an in-page mode toggle
 - fixture selector for `basic / 100 / 500 / 1000`
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
@@ -58,13 +58,16 @@ Use this surface when you want to evaluate runtime behavior:
 - syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
 - benchmark-oriented reading of the same editor contract
 
-The lab is intentionally part of the public product surface rather than a hidden dev-only page.
-Use it to compare `auto` versus forced runtime modes while keeping fallback reasons visible.
+Run it with:
+
+```bash
+pnpm demo:performance-lab
+```
 
 Default state model:
 
-- `Product Demo`: `fixture=basic`, `editability=editable`, `diagnosticsVisibility=hidden`
-- `Performance Lab`: `fixture=100`, `editability=editable`, `diagnosticsVisibility=full`
+- `Product Demo`: fixed `basic` fixture, editable interactions, lightweight runtime snapshot
+- `Performance Lab`: `fixture=100`, `editability=editable`, full diagnostics
 
 Evaluation guidance:
 
@@ -113,6 +116,12 @@ pnpm demo:web-component
 In another terminal:
 
 ```bash
+pnpm demo:performance-lab
+```
+
+In another terminal:
+
+```bash
 pnpm demo:react
 ```
 
@@ -142,6 +151,7 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - `@minislively/workflow-editor-shell`: shell theme tokens and styling contract
 - `@minislively/workflow-element`: primary `Web Component` integration surface
 - `@minislively/workflow-react`: secondary React wrapper
+- `@minislively/workflow-demo-support`: shared fixtures and diagnostics helpers for demo apps
 - `@minislively/workflow-nodepack-basic`: starter graph fixture and node catalog
 
 ## Docs

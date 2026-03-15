@@ -81,12 +81,28 @@ importers:
 
   apps/demo-web-component:
     dependencies:
+      '@minislively/workflow-demo-support':
+        specifier: workspace:*
+        version: link:../../packages/workflow-demo-support
       '@minislively/workflow-element':
         specifier: workspace:*
         version: link:../../packages/workflow-element
-      '@minislively/workflow-nodepack-basic':
+    devDependencies:
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^8.0.0
+        version: 8.0.0(@types/node@24.12.0)(esbuild@0.27.4)
+
+  apps/performance-lab:
+    dependencies:
+      '@minislively/workflow-demo-support':
         specifier: workspace:*
-        version: link:../../packages/workflow-nodepack-basic
+        version: link:../../packages/workflow-demo-support
+      '@minislively/workflow-element':
+        specifier: workspace:*
+        version: link:../../packages/workflow-element
     devDependencies:
       typescript:
         specifier: ~5.9.3
@@ -97,6 +113,15 @@ importers:
 
   packages/workflow-core:
     dependencies:
+      '@minislively/workflow-types':
+        specifier: workspace:*
+        version: link:../workflow-types
+
+  packages/workflow-demo-support:
+    dependencies:
+      '@minislively/workflow-nodepack-basic':
+        specifier: workspace:*
+        version: link:../workflow-nodepack-basic
       '@minislively/workflow-types':
         specifier: workspace:*
         version: link:../workflow-types

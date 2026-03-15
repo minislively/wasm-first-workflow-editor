@@ -1,6 +1,6 @@
 # Performance Evaluation Guide
 
-Use `Performance Lab` when you need evidence about runtime behavior, not just a first-run product feel.
+Use `apps/performance-lab` when you need evidence about runtime behavior, not just a first-run product feel.
 
 ## What to evaluate
 
@@ -11,7 +11,7 @@ Use `Performance Lab` when you need evidence about runtime behavior, not just a 
 
 ## Recommended lab flow
 
-1. Start from `Performance Lab`, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
+1. Start from the dedicated `Performance Lab` app, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
 2. Confirm the diagnostics panel shows the active renderer, kernel source, and current preferences before changing anything.
 3. Step through `100`, `500`, and `1000` to observe node count, edge count, and zoom behavior under the same surface contract.
 4. Change `rendererPreference` between `auto`, `webgl`, and `canvas` to see whether the runtime stays on the requested path or reports a fallback.
@@ -34,7 +34,7 @@ Expected fallback examples:
 
 ## What the lab proves today
 
-- the repo exposes one public evaluation surface instead of hidden internal-only diagnostics
+- the repo exposes one public evaluation app instead of hidden internal-only diagnostics
 - benchmark fixtures for `100`, `500`, and `1000` are runnable from the same host contract
 - renderer and kernel preferences are externally visible through runtime diagnostics
 - fallback states stay visible enough for adopters to judge fit without reading internals

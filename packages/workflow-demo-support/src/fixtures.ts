@@ -1,7 +1,28 @@
 import { createBasicDemoGraph } from '@minislively/workflow-nodepack-basic'
-import type { GraphDocument } from '@minislively/workflow-types'
+import type {
+  Editability,
+  GraphDocument,
+  KernelPreference,
+  RendererPreference,
+} from '@minislively/workflow-types'
 
 export type FixtureKey = 'basic' | '100' | '500' | '1000'
+
+export type PerformanceLabState = {
+  fixture: FixtureKey
+  editability: Editability
+  rendererPreference: RendererPreference
+  kernelPreference: KernelPreference
+}
+
+export function createPerformanceLabState(): PerformanceLabState {
+  return {
+    fixture: '100',
+    editability: 'editable',
+    rendererPreference: 'auto',
+    kernelPreference: 'auto',
+  }
+}
 
 export function getFixtureGraph(fixture: FixtureKey): GraphDocument {
   if (fixture === 'basic') {
