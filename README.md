@@ -2,6 +2,8 @@
 
 Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
 
+[![verify](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml/badge.svg)](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml)
+
 ## v0 promise
 
 This repository does not promise infinite scale. It promises a measurable baseline:
@@ -11,6 +13,14 @@ This repository does not promise infinite scale. It promises a measurable baseli
 - the graph stage stays on an engine-shaped path
 - a runnable minimum demo exists from a clean checkout
 - benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+
+## Why this exists
+
+Most node editors let shell convenience leak into the graph hot path. This repository does the opposite:
+
+- the graph stage is treated like a scene engine
+- the host shell stays open for branding and integration
+- the primary adoption path is `Web Component`, not framework lock-in
 
 ## What ships in this baseline
 
@@ -48,6 +58,12 @@ pnpm demo:react
 
 If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to install it and the rest of the repo still runs on the TypeScript fallback path.
 
+## Integration surfaces
+
+- Primary: `@minislively/workflow-element`
+- Secondary: `@minislively/workflow-react`
+- Supporting: shared types, engine, renderers, and wasm kernel packages
+
 ## Package map
 
 - `@minislively/workflow-types`: shared protocol and graph types
@@ -68,6 +84,8 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - [React host guidance](./docs/adoption/react-host.md)
 - [Performance boundary](./docs/performance/boundaries.md)
 - [Performance baseline](./docs/performance/baselines.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Release notes](./docs/release/v0.1.0.md)
 
 ## License
 
