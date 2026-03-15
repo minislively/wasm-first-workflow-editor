@@ -4,3 +4,4 @@ dist
 coverage
 target
 packages/workflow-wasm-core/pkg
+.omx
