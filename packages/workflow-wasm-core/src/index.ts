@@ -40,7 +40,7 @@ export type WorkflowWasmKernel = {
 }
 
 type WasmModule = {
-  default?: () => Promise<unknown> | unknown
+  __wbg_set_wasm?: (wasm: WebAssembly.Exports) => void
   wf_clamp_zoom?: (zoom: number) => number
   wf_bounds_width?: (minX: number, maxX: number) => number
   wf_bounds_height?: (minY: number, maxY: number) => number
@@ -106,13 +106,14 @@ export function clampZoomKernel(zoom: number) {
 
 export async function loadWasmKernel(options?: {
   moduleUrl?: string
+  wasmUrl?: string
 }): Promise<WorkflowWasmKernel> {
   if (options?.moduleUrl) {
-    return createKernel(options.moduleUrl)
+    return createKernel(options.moduleUrl, options.wasmUrl)
   }
 
   if (!cachedKernel) {
-    cachedKernel = createKernel(options?.moduleUrl)
+    cachedKernel = createKernel(options?.moduleUrl, options?.wasmUrl)
   }
 
   return cachedKernel
@@ -205,18 +206,34 @@ export function createKernelFromModule(module: WasmModule): WorkflowWasmKernel |
   }
 }
 
-async function createKernel(moduleUrl?: string): Promise<WorkflowWasmKernel> {
+async function createKernel(
+  moduleUrl?: string,
+  wasmUrl?: string,
+): Promise<WorkflowWasmKernel> {
   const fallback = getFallbackKernel()
 
   try {
-    const targetUrl = moduleUrl ?? new URL('../pkg/index.js', import.meta.url).href
+    const targetUrl = moduleUrl ?? new URL('../pkg/index_bg.js', import.meta.url).href
+    const targetWasmUrl =
+      wasmUrl ?? new URL('../pkg/index_bg.wasm', import.meta.url).href
     const module = (await import(
       /* @vite-ignore */
       targetUrl
     )) as WasmModule
 
-    if (typeof module.default === 'function') {
-      await module.default()
+    if (typeof module.__wbg_set_wasm !== 'function') {
+      return fallback
+    }
+
+    const response = await fetch(targetWasmUrl)
+    const bytes = await response.arrayBuffer()
+    const { instance } = await WebAssembly.instantiate(bytes, {})
+
+    module.__wbg_set_wasm(instance.exports)
+
+    const start = instance.exports.__wbindgen_start
+    if (typeof start === 'function') {
+      start()
     }
 
     return createKernelFromModule(module) ?? fallback
