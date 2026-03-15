@@ -7,8 +7,11 @@ import {
   createInitialDiagnosticsState,
   createPerformanceLabState,
   createPerformanceLabSummary,
+  describeFixtureTier,
   getFixtureGraph,
+  getFixtureInteractionContract,
   markDiagnosticsSyncing,
+  resolvePerformanceLabEditability,
   type FixtureKey,
 } from '@minislively/workflow-demo-support'
 import type {
@@ -27,7 +30,11 @@ if (!app) {
 const state = createPerformanceLabState()
 
 let diagnostics = createInitialDiagnosticsState({
-  editability: state.editability,
+  editability: resolvePerformanceLabEditability(
+    state.fixture,
+    state.editability,
+    state.allowExperimentalEditing,
+  ),
   rendererPreference: state.rendererPreference,
   kernelPreference: state.kernelPreference,
 })
@@ -68,6 +75,9 @@ app.innerHTML = `
         <aside class="control-panel">
           <section class="panel-card">
             <div class="panel-label">Fixture</div>
+            <p class="fixture-copy">
+              <code>100</code> remains the editing-capable baseline. <code>500</code> and <code>1000</code> stay read-only until you explicitly opt into experimental heavy editing.
+            </p>
             <div class="fixture-grid">
               <button data-fixture="basic" class="fixture-chip" type="button">Basic</button>
               <button data-fixture="100" class="fixture-chip is-active" type="button">100</button>
@@ -106,6 +116,7 @@ app.innerHTML = `
               </label>
             </div>
           </section>
+          <section class="panel-card policy-card" data-role="policy-card"></section>
           <section class="panel-card evaluation-card" data-role="evaluation-card"></section>
           <section class="panel-card diagnostics-card" data-role="diagnostics-card"></section>
           <section class="panel-card">
@@ -179,18 +190,16 @@ editor.element.addEventListener('change', (event) => {
 document.querySelectorAll<HTMLButtonElement>('[data-fixture]').forEach((button) => {
   button.addEventListener('click', async () => {
     state.fixture = button.dataset.fixture as FixtureKey
+    state.allowExperimentalEditing = false
     currentGraph = getFixtureGraph(state.fixture)
     diagnostics = markDiagnosticsSyncing(
       diagnostics,
-      {
-        editability: state.editability,
-        rendererPreference: state.rendererPreference,
-        kernelPreference: state.kernelPreference,
-      },
+      getRuntimePreferences(),
       currentGraph.nodes.length,
       currentGraph.edges.length,
     )
     renderPanels()
+    editor.setPreferences(getRuntimePreferences())
     await editor.setGraph(currentGraph)
     selection = []
     renderPanels()
@@ -217,36 +226,54 @@ document.querySelectorAll<HTMLSelectElement>('[data-control]').forEach((select) 
 
     diagnostics = markDiagnosticsSyncing(
       diagnostics,
-      {
-        editability: state.editability,
-        rendererPreference: state.rendererPreference,
-        kernelPreference: state.kernelPreference,
-      },
+      getRuntimePreferences(),
       currentGraph.nodes.length,
       currentGraph.edges.length,
     )
-    editor.setPreferences({
-      editability: state.editability,
-      rendererPreference: state.rendererPreference,
-      kernelPreference: state.kernelPreference,
-    })
+    editor.setPreferences(getRuntimePreferences())
     renderPanels()
   })
+})
+
+document.addEventListener('change', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement) || target.dataset.control !== 'allowHeavyEditing') {
+    return
+  }
+
+  state.allowExperimentalEditing = target.checked
+  diagnostics = markDiagnosticsSyncing(
+    diagnostics,
+    getRuntimePreferences(),
+    currentGraph.nodes.length,
+    currentGraph.edges.length,
+  )
+  editor.setPreferences(getRuntimePreferences())
+  renderPanels()
 })
 
 renderPanels()
 
 function renderPanels() {
+  const policyCard = document.querySelector<HTMLElement>('[data-role="policy-card"]')
   const evaluationCard = document.querySelector<HTMLElement>('[data-role="evaluation-card"]')
   const diagnosticsCard = document.querySelector<HTMLElement>('[data-role="diagnostics-card"]')
   const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
   const summary = createPerformanceLabSummary(state, diagnostics)
+  const fixtureContract = getFixtureInteractionContract(state.fixture)
+  const heavyTierLocked = summary.degradedByDefault && !state.allowExperimentalEditing
   const comparisonRows = [
     {
-      label: 'Editability',
+      label: 'Editability intent',
       requested: state.editability,
+      active: summary.effectiveEditability,
+      matches: state.editability === summary.effectiveEditability,
+    },
+    {
+      label: 'Runtime editability',
+      requested: summary.effectiveEditability,
       active: diagnostics.preferences.editability,
-      matches: state.editability === diagnostics.preferences.editability,
+      matches: summary.effectiveEditability === diagnostics.preferences.editability,
     },
     {
       label: 'Renderer pref',
@@ -270,18 +297,30 @@ function renderPanels() {
           detail:
             'The lab is applying the latest fixture or preference change. Compare requested and active rows after the next diagnostics event lands.',
         }
-      : diagnostics.fallbackReason
+      : heavyTierLocked
         ? {
             tone: 'warning',
-            title: 'Fallback is active',
-            detail: diagnostics.fallbackReason,
+            title: summary.capabilityTitle,
+            detail: summary.capabilityDetail,
           }
-        : {
-            tone: 'success',
-            title: 'Requested runtime is active',
-            detail:
-              'No fallback is currently reported. Use fixture size, zoom, and requested-vs-active rows below to judge fit.',
-          }
+        : summary.degradedByDefault
+          ? {
+              tone: 'warning',
+              title: summary.capabilityTitle,
+              detail: summary.capabilityDetail,
+            }
+        : diagnostics.fallbackReason
+          ? {
+              tone: 'warning',
+              title: 'Fallback is active',
+              detail: diagnostics.fallbackReason,
+            }
+          : {
+              tone: 'success',
+              title: 'Requested runtime is active',
+              detail:
+                'No fallback is currently reported. Use fixture size, zoom, and requested-vs-active rows below to judge fit.',
+            }
 
   document.querySelectorAll<HTMLButtonElement>('[data-fixture]').forEach((button) => {
     button.classList.toggle('is-active', button.dataset.fixture === state.fixture)
@@ -290,7 +329,36 @@ function renderPanels() {
   document.querySelectorAll<HTMLSelectElement>('[data-control]').forEach((select) => {
     const key = select.dataset.control as keyof RuntimePreferences
     select.value = String(state[key])
+    if (key === 'editability') {
+      select.disabled = heavyTierLocked
+    }
   })
+
+  policyCard!.className = `panel-card policy-card ${heavyTierLocked ? 'tone-warning' : 'tone-info'}`
+  policyCard!.innerHTML = fixtureContract.tier === 'degraded-viewer'
+    ? `
+      <div class="panel-label">Tier Policy</div>
+      <strong>${fixtureContract.label}</strong>
+      <p>
+        ${fixtureContract.detail}
+      </p>
+      <label class="toggle-row">
+        <input
+          data-control="allowHeavyEditing"
+          type="checkbox"
+          ${state.allowExperimentalEditing ? 'checked' : ''}
+        />
+        <span>Enable experimental editing for ${state.fixture}</span>
+      </label>
+      <p class="policy-note">Requested editability: ${state.editability}. Effective editability: ${summary.effectiveEditability}.</p>
+    `
+    : `
+      <div class="panel-label">Tier Policy</div>
+      <strong>${fixtureContract.label}</strong>
+      <p>
+        ${describeFixtureTier(state.fixture)}
+      </p>
+    `
 
   evaluationCard!.className = `panel-card evaluation-card tone-${evaluation.tone}`
   evaluationCard!.innerHTML = `
@@ -329,7 +397,10 @@ function renderPanels() {
         ['Sync', diagnostics.syncStatus],
         ['Last event', diagnostics.lastEvent ?? 'none'],
         ['Requested editability', state.editability],
+        ['Effective editability', summary.effectiveEditability],
         ['Active editability', diagnostics.preferences.editability],
+        ['Tier policy', heavyTierLocked ? 'degraded by default' : summary.degradedByDefault ? 'experimental override' : 'editing-capable'],
+        ['Fixture contract', summary.fixtureContractLabel],
         ['Requested renderer', state.rendererPreference],
         ['Active renderer pref', diagnostics.preferences.rendererPreference],
         ['Requested kernel', state.kernelPreference],
@@ -348,7 +419,11 @@ function renderPanels() {
 
   selectionList!.innerHTML =
     selection.length === 0
-      ? '<div class="selection-empty">No selection. Drag, pan, zoom, and fixture switching all stay live.</div>'
+      ? `<div class="selection-empty">${
+          heavyTierLocked
+            ? `No selection. ${state.fixture} is currently navigation-only, so pan, zoom, and fixture switching stay live while editing remains gated.`
+            : 'No selection. Drag, pan, zoom, and fixture switching all stay live.'
+        }</div>`
       : selection
           .map(
             (item) => `
@@ -360,4 +435,16 @@ function renderPanels() {
             `,
           )
           .join('')
+}
+
+function getRuntimePreferences(): RuntimePreferences {
+  return {
+    editability: resolvePerformanceLabEditability(
+      state.fixture,
+      state.editability,
+      state.allowExperimentalEditing,
+    ),
+    rendererPreference: state.rendererPreference,
+    kernelPreference: state.kernelPreference,
+  }
 }

@@ -5,7 +5,9 @@ import {
   applyReadyDiagnostics,
   applyStatsDiagnostics,
   createInitialDiagnosticsState,
-  getFixtureGraph,
+  getProductDemoGraph,
+  getProductDemoTemplateOptions,
+  type ProductDemoTemplateKey,
 } from '@minislively/workflow-demo-support'
 import type { EngineEvent, GraphDocument, SelectionSummary } from '@minislively/workflow-types'
 
@@ -22,7 +24,9 @@ let diagnostics = createInitialDiagnosticsState({
 })
 
 let selection: SelectionSummary[] = []
-let currentGraph: GraphDocument = getFixtureGraph('basic')
+const productDemoTemplates = getProductDemoTemplateOptions()
+let templateState: ProductDemoTemplateKey = productDemoTemplates[0]?.key ?? 'support-triage'
+let currentGraph: GraphDocument = getProductDemoGraph(templateState)
 
 app.innerHTML = `
   <main class="page">
@@ -48,7 +52,7 @@ app.innerHTML = `
           <strong class="surface-title">Default experience for first-time OSS users</strong>
         </div>
         <div class="surface-summary">
-          Start with the built-in editor feel here. Use the separate Performance Lab app when you need public fixtures, runtime controls, and full diagnostics.
+          Start with the built-in editor feel here. This surface only exposes the controls we trust in public right now: select, drag, pan, zoom, and swap between guided example flows.
         </div>
       </div>
       <div class="surface-layout">
@@ -61,6 +65,38 @@ app.innerHTML = `
               graph hot path stays inside the same custom element contract that
               production hosts will embed.
             </p>
+          </section>
+          <section class="panel-card">
+            <div class="panel-label">Trusted Controls</div>
+            <strong>Visible controls match the current product promise.</strong>
+            <div class="template-summary">
+              <p>Select, drag, pan, and zoom the example graph.</p>
+              <p>Swap between guided example flows without broad freeform editing.</p>
+              <p>Use the runtime snapshot for backend, kernel, and fallback truth.</p>
+            </div>
+          </section>
+          <section class="panel-card">
+            <div class="panel-label">Template-First Example</div>
+            <strong>Swap guided API steps without promising broad authoring.</strong>
+            <p>
+              This shell-owned panel swaps known node variants in the starter
+              flow so users can test API-flavored examples without relying on
+              unrestricted graph editing.
+            </p>
+            <div class="template-control-stack">
+              <label>
+                <span>Guided example flow</span>
+                <select data-template-control="template">
+                  ${productDemoTemplates
+                    .map(
+                      (template) =>
+                        `<option value="${template.key}">${template.label}</option>`,
+                    )
+                    .join('')}
+                </select>
+              </label>
+            </div>
+            <div class="template-summary" data-role="template-summary"></div>
           </section>
           <section class="panel-card">
             <div class="panel-label">Runtime Snapshot</div>
@@ -137,12 +173,26 @@ editor.element.addEventListener('change', (event) => {
   renderPanels()
 })
 
+document
+  .querySelectorAll<HTMLSelectElement>('[data-template-control]')
+  .forEach((select) => {
+    select.addEventListener('change', async () => {
+      templateState = select.value as ProductDemoTemplateKey
+      currentGraph = getProductDemoGraph(templateState)
+      renderPanels()
+      await editor.setGraph(currentGraph)
+      selection = []
+      renderPanels()
+    })
+  })
+
 renderPanels()
 
 function renderPanels() {
   const runtimeTitle = document.querySelector<HTMLElement>('[data-role="runtime-title"]')
   const runtimeCopy = document.querySelector<HTMLElement>('[data-role="runtime-copy"]')
   const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
+  const templateSummary = document.querySelector<HTMLElement>('[data-role="template-summary"]')
   const runtimeState =
     diagnostics.lastEvent === null
       ? {
@@ -160,12 +210,34 @@ function renderPanels() {
           ].join(' '),
         }
 
+  document
+    .querySelectorAll<HTMLSelectElement>('[data-template-control]')
+    .forEach((select) => {
+      select.value = templateState
+    })
+
   runtimeTitle!.textContent = runtimeState.title
   runtimeCopy!.textContent = runtimeState.detail
+  const activeTemplate =
+    productDemoTemplates.find((template) => template.key === templateState) ??
+    productDemoTemplates[0]
+  templateSummary!.innerHTML = `
+    <strong>${activeTemplate.label}</strong>
+    <p>
+      ${activeTemplate.summary}
+    </p>
+    <p>
+      Host-managed template swap active. The shell chooses guided flow variants
+      while the engine still owns drag, pan, zoom, selection, and rendering.
+    </p>
+    <p>
+      Broad add, delete, and reconnect editing stays out of this public demo until it is equally trustworthy.
+    </p>
+  `
 
   selectionList!.innerHTML =
     selection.length === 0
-      ? '<div class="selection-empty">No selection. Drag, pan, and zoom stay live in the basic product graph.</div>'
+      ? '<div class="selection-empty">No selection. Drag, pan, zoom, and template switching stay live on this guided product surface.</div>'
       : selection
           .map(
             (item) => `

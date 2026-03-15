@@ -39,6 +39,22 @@ editor.setPreferences({
 })
 ```
 
+For template-first product shells, prefer host-owned graph swaps over promising unrestricted authoring:
+
+```ts
+const graph = createBasicDemoGraph()
+
+graph.nodes = graph.nodes.map((node) =>
+  node.id === 'publish'
+    ? { ...node, title: 'Publish to Slack', subtitle: 'Deliver the result to an ops channel' }
+    : node,
+)
+
+await editor.setGraph(graph)
+```
+
+That keeps the host responsible for guided example variants while the engine still owns stage interaction and rendering.
+
 ## Event contract
 
 The host should listen to editor events instead of pulling graph-stage state directly into app-level rendering.

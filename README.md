@@ -37,6 +37,7 @@ Use `apps/demo-web-component` when you want to understand the editor as a produc
 
 - small default graph
 - direct editing feel
+- template-first example swaps for guided API-style flows
 - lightweight runtime feedback
 - clear `Web Component`-first story
 
@@ -55,8 +56,16 @@ Use `apps/performance-lab` when you want to evaluate runtime behavior:
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
+- degraded-by-default heavy tiers with an explicit experimental-editing opt-in
 - syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
 - benchmark-oriented reading of the same editor contract
+
+The lab is a truth surface, not a marketing surface:
+
+- visible controls should match actual runtime behavior
+- requested and active runtime state should stay side by side
+- heavier fixtures should be evaluated with explicit diagnostics, not implied maturity
+- current repo state keeps `100` as the default editable baseline and downgrades `500 / 1000` to degraded viewer mode by default
 
 Run it with:
 
@@ -73,6 +82,7 @@ Evaluation guidance:
 
 - compare `requested` and `active` runtime rows after changing renderer or kernel preferences
 - treat `Fallback visible` as a first-class result, not a hidden error
+- treat `500` and `1000` as navigation-first tiers unless you explicitly opt into experimental editing
 - keep the public fixture promise bounded to `100 / 500 / 1000` until heavier scenarios are explicitly validated
 
 Recommended evaluation path:
@@ -80,7 +90,29 @@ Recommended evaluation path:
 1. Start in `Performance Lab` and confirm the current renderer, kernel source, and fallback state.
 2. Step through the public fixtures `100`, `500`, and `1000`.
 3. Compare `rendererPreference` and `kernelPreference` in `auto` versus forced modes.
-4. Switch `editability` to `read-only` if your target integration is a viewer rather than an editor.
+4. Confirm `500` and `1000` enter degraded read-only mode by default, then enable experimental editing only if you are intentionally probing beyond the trustworthy baseline.
+5. Switch `editability` to `read-only` on lighter tiers if your target integration is a viewer rather than an editor.
+
+## Public Reliability Contract
+
+The public surfaces are intentionally split:
+
+- `Product Demo`: trustworthy first-run surface, fixed to the `basic` graph and lightweight runtime feedback
+- `Performance Lab`: diagnostics-forward surface for fixture comparison and runtime preference evaluation
+
+Current trustworthy baseline:
+
+- `basic`: product-oriented editable baseline
+- `100`: lab-oriented editable baseline for interaction smoke and diagnostics comparison
+- `500 / 1000`: public evaluation fixtures that default to degraded viewer mode unless a host explicitly opts into experimental editing
+
+Near-term usage guidance:
+
+- treat `Product Demo` as the place to assess the editor feel
+- treat `Performance Lab` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
+- prefer template-first examples and host-controlled API wiring over broad freeform editing promises when presenting the project publicly
+
+For the full surface contract, see [Public Surface Reliability](./docs/product/reliability.md).
 
 ## Demo surfaces
 
@@ -137,8 +169,8 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 
 - `basic`: product-oriented default graph
 - `100`: light lab fixture
-- `500`: medium lab fixture
-- `1000`: heavier public baseline fixture
+- `500`: degraded-by-default medium evaluation fixture
+- `1000`: degraded-by-default heavy public viewing fixture
 
 ## Package map
 
@@ -157,6 +189,7 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 ## Docs
 
 - [Architecture](./docs/architecture/overview.md)
+- [Public surface reliability](./docs/product/reliability.md)
 - [Web Component adoption](./docs/adoption/web-component.md)
 - [React host guidance](./docs/adoption/react-host.md)
 - [Performance boundary](./docs/performance/boundaries.md)

@@ -165,6 +165,14 @@ h1 {
   border-color: rgba(125, 211, 252, 0.5);
 }
 
+.policy-card.tone-info {
+  border-color: rgba(125, 211, 252, 0.5);
+}
+
+.policy-card.tone-warning {
+  border-color: rgba(251, 191, 36, 0.58);
+}
+
 .evaluation-card.tone-success {
   border-color: rgba(20, 184, 166, 0.52);
 }
@@ -196,6 +204,10 @@ h1 {
   margin-bottom: 12px;
 }
 
+.fixture-copy {
+  margin-bottom: 12px;
+}
+
 .control-stack label {
   display: grid;
   gap: 6px;
@@ -210,6 +222,34 @@ h1 {
   color: #ecfeff;
   padding: 10px 12px;
   font: inherit;
+}
+
+.control-stack select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  color: #dbeafe;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #f59e0b;
+}
+
+.toggle-row span {
+  line-height: 1.5;
+}
+
+.policy-note {
+  margin-top: 12px;
+  font-size: 13px;
 }
 
 .diag-grid {

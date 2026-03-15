@@ -40,7 +40,11 @@ describe('workflow-demo-support performance lab summary', () => {
 
     expect(summary.renderer.status).toBe('Requested webgl, active canvas2d.')
     expect(summary.kernel.status).toBe('Requested wasm, active ts-fallback.')
-    expect(summary.editability).toContain('Read-only isolates')
+    expect(summary.editability).toContain('default public contract')
+    expect(summary.fixtureContractLabel).toContain('degraded-by-default')
+    expect(summary.effectiveEditability).toBe('read-only')
+    expect(summary.capabilityTitle).toBe('Degraded mode is active')
+    expect(summary.degradedByDefault).toBe(true)
     expect(summary.evaluationNotes).toContain(
       'Fallback surfaced: webgl unavailable; fell back to canvas2d',
     )

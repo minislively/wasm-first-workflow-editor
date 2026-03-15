@@ -1,7 +1,14 @@
-import type { RuntimePreferences } from '@minislively/workflow-types'
+import type { Editability, RuntimePreferences } from '@minislively/workflow-types'
 
 import type { DiagnosticsState } from './diagnostics'
-import type { FixtureKey, PerformanceLabState } from './fixtures'
+import {
+  describeFixtureTier,
+  getFixtureInteractionContract,
+  isDegradedFixture,
+  resolvePerformanceLabEditability,
+  type FixtureKey,
+  type PerformanceLabState,
+} from './fixtures'
 
 type RuntimeResolution = {
   requested: string
@@ -13,8 +20,13 @@ export type PerformanceLabSummary = {
   renderer: RuntimeResolution
   kernel: RuntimeResolution
   editability: string
+  effectiveEditability: Editability
   fixtureLabel: string
+  fixtureContractLabel: string
   fallbackLabel: string
+  capabilityTitle: string
+  capabilityDetail: string
+  degradedByDefault: boolean
   evaluationNotes: string[]
 }
 
@@ -24,18 +36,54 @@ export function createPerformanceLabSummary(
 ): PerformanceLabSummary {
   const renderer = resolveRenderer(state, diagnostics)
   const kernel = resolveKernel(state, diagnostics)
+  const effectiveEditability = resolvePerformanceLabEditability(
+    state.fixture,
+    state.editability,
+    state.allowExperimentalEditing,
+  )
+  const degradedByDefault = isDegradedFixture(state.fixture)
 
   return {
     renderer,
     kernel,
-    editability:
-      state.editability === 'read-only'
-        ? 'Read-only isolates pan/zoom and fixture load behavior.'
-        : 'Editable keeps node drag interactions active while you evaluate.',
+    editability: describeEditability(state, effectiveEditability),
+    effectiveEditability,
     fixtureLabel: describeFixture(state.fixture),
+    fixtureContractLabel: describeFixtureTier(state.fixture),
     fallbackLabel: diagnostics.fallbackReason ?? 'No fallback reported.',
-    evaluationNotes: createEvaluationNotes(state, diagnostics, renderer, kernel),
+    capabilityTitle: getCapabilityTitle(degradedByDefault, state.allowExperimentalEditing),
+    capabilityDetail: getCapabilityDetail(
+      state.fixture,
+      state.editability,
+      effectiveEditability,
+      state.allowExperimentalEditing,
+    ),
+    degradedByDefault,
+    evaluationNotes: createEvaluationNotes(
+      state,
+      diagnostics,
+      renderer,
+      kernel,
+      effectiveEditability,
+    ),
   }
+}
+
+function describeEditability(
+  state: PerformanceLabState,
+  effectiveEditability: Editability,
+) {
+  const contract = getFixtureInteractionContract(state.fixture)
+
+  if (effectiveEditability === 'read-only') {
+    return contract.tier === 'degraded-viewer'
+      ? 'Read-only is the default public contract for this fixture tier.'
+      : 'Read-only isolates pan/zoom and fixture load behavior.'
+  }
+
+  return contract.tier === 'degraded-viewer'
+    ? 'Editable overrides the degraded default and should be treated as an explicit experiment.'
+    : 'Editable keeps node drag interactions active while you evaluate.'
 }
 
 function resolveRenderer(
@@ -110,11 +158,19 @@ function createEvaluationNotes(
   diagnostics: DiagnosticsState,
   renderer: RuntimeResolution,
   kernel: RuntimeResolution,
+  effectiveEditability: Editability,
 ): string[] {
   const notes = [
     `Fixture check: ${describeFixture(state.fixture)}`,
-    `Interaction mode: ${state.editability === 'read-only' ? 'navigation-only' : 'editing enabled'}`,
+    `Contract check: ${describeFixtureTier(state.fixture)}`,
+    `Interaction mode: ${effectiveEditability === 'read-only' ? 'navigation-only' : 'editing enabled'}`,
   ]
+
+  if (isDegradedFixture(state.fixture) && !state.allowExperimentalEditing) {
+    notes.push('Heavy fixture policy: read-only is enforced until experimental editing is explicitly enabled.')
+  } else if (isDegradedFixture(state.fixture) && state.allowExperimentalEditing) {
+    notes.push('Heavy fixture policy: experimental editing is explicitly enabled for this session.')
+  }
 
   if (state.rendererPreference !== 'auto' || state.kernelPreference !== 'auto') {
     notes.push(`Forced runtime: renderer ${renderer.status} Kernel ${kernel.status}`)
@@ -144,8 +200,42 @@ export function describeFixture(fixture: FixtureKey) {
     case '100':
       return '100 nodes for sanity and interaction smoke'
     case '500':
-      return '500 nodes for routine editing evaluation'
+      return '500 nodes for degraded-by-default runtime evaluation'
     case '1000':
-      return '1000 nodes for the public heavy baseline'
+      return '1000 nodes for the public heavy-viewing baseline'
   }
+}
+
+function getCapabilityTitle(
+  degradedByDefault: boolean,
+  allowExperimentalEditing: boolean,
+) {
+  if (!degradedByDefault) {
+    return 'Editing-capable baseline'
+  }
+
+  return allowExperimentalEditing
+    ? 'Experimental editing enabled'
+    : 'Degraded mode is active'
+}
+
+function getCapabilityDetail(
+  fixture: FixtureKey,
+  requestedEditability: Editability,
+  effectiveEditability: Editability,
+  allowExperimentalEditing: boolean,
+) {
+  if (!isDegradedFixture(fixture)) {
+    return 'This public tier keeps editing available by default, so the visible controls match the editing-capable baseline promise.'
+  }
+
+  if (!allowExperimentalEditing) {
+    return '500 and 1000 stay read-only by default. Pan, zoom, diagnostics, and fixture switching remain trustworthy while broad editing stays explicitly degraded.'
+  }
+
+  if (requestedEditability === 'read-only' || effectiveEditability === 'read-only') {
+    return 'Experimental editing is unlocked for this heavy tier, but the current request still keeps the runtime in read-only mode.'
+  }
+
+  return 'Experimental editing is enabled for this heavy tier. Treat direct graph edits as an investigative path, not as the default public promise.'
 }

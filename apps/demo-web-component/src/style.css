@@ -138,6 +138,42 @@ h1 {
   line-height: 1.55;
 }
 
+.template-control-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.template-control-stack label {
+  display: grid;
+  gap: 6px;
+  color: #9fb4cf;
+  font-size: 14px;
+}
+
+.template-control-stack select {
+  border: 1px solid rgba(71, 85, 105, 0.42);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.86);
+  color: #ecfeff;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.template-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  border: 1px solid rgba(71, 85, 105, 0.32);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.74);
+}
+
+.template-summary strong {
+  margin-bottom: 0;
+}
+
 .panel-label {
   margin-bottom: 12px;
   font-size: 12px;

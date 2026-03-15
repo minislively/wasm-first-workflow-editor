@@ -22,13 +22,23 @@ test.describe('performance lab surface', () => {
     await page.getByRole('button', { name: '500' }).click()
 
     const diagnostics = page.locator('.diag-grid')
+    await expect(page.locator('[data-role="policy-card"]')).toContainText(
+      'Degraded-by-default viewer tier',
+    )
+    await expect(page.locator('select[data-control="editability"]')).toBeDisabled()
+    await expect(page.locator('.evaluation-card')).toContainText('Degraded mode is active')
     await expect(diagnostics).toContainText('Nodes')
     await expect(diagnostics).toContainText('500')
     await expect(diagnostics).toContainText('499')
+    await expect(diagnostics).toContainText('degraded by default')
+    await expect(diagnostics).toContainText('500 nodes for degraded-by-default runtime evaluation')
 
     await page.getByRole('button', { name: '1000' }).click()
     await expect(diagnostics).toContainText('1000')
     await expect(diagnostics).toContainText('999')
+    await expect(diagnostics).toContainText(
+      '1000 nodes for the public heavy-viewing baseline',
+    )
   })
 
   test('runtime preference controls reflect requested vs active runtime', async ({
@@ -44,8 +54,29 @@ test.describe('performance lab surface', () => {
     await expect(page.locator('.diag-grid')).toContainText('canvas')
     await expect(page.locator('.diag-grid')).toContainText('ts-fallback')
     await expect(page.locator('.evaluation-card')).toContainText('Fallback is active')
+    await expect(page.locator('.evaluation-card')).toContainText('read-only -> read-only')
+    await expect(page.locator('.evaluation-card')).toContainText('canvas -> canvas')
+    await expect(page.locator('.evaluation-card')).toContainText('ts-fallback -> ts-fallback')
     await expect(page.locator('.evaluation-card')).toContainText(
       'typescript fallback',
     )
+  })
+
+  test('heavy tiers require explicit opt-in before editing resumes', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: '500' }).click()
+
+    const diagnostics = page.locator('.diag-grid')
+    await expect(diagnostics).toContainText('Requested editability')
+    await expect(diagnostics).toContainText('read-only')
+
+    await page.locator('input[data-control="allowHeavyEditing"]').check()
+
+    await expect(page.locator('[data-role="policy-card"]')).toContainText(
+      'Enable experimental editing for 500',
+    )
+    await expect(diagnostics).toContainText('experimental override')
+    await expect(diagnostics).toContainText('Effective editability')
+    await expect(diagnostics).toContainText('editable')
   })
 })
