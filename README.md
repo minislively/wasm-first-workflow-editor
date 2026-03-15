@@ -4,6 +4,8 @@ Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
 
 [![verify](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml/badge.svg)](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml)
 
+![Web Component demo](./docs/assets/web-component-demo.png)
+
 ## v0 promise
 
 This repository does not promise infinite scale. It promises a measurable baseline:
@@ -28,6 +30,16 @@ Most node editors let shell convenience leak into the graph hot path. This repos
 - Runnable `React` host demo
 - Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
 - Architecture, adoption, and performance-boundary docs
+
+## Demo surfaces
+
+Primary host:
+
+![Web Component host](./docs/assets/web-component-demo.png)
+
+Secondary host:
+
+![React host](./docs/assets/react-host-demo.png)
 
 ## Product rule
 
