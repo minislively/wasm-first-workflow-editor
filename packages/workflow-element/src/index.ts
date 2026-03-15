@@ -209,6 +209,7 @@ export class WorkflowEditorElement extends HTMLElement {
         if (this.statsBadge) {
           this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.kernelSource}`
         }
+        this.dispatchEvent(new CustomEvent('stats', { detail: event }))
         break
       case 'error':
         if (this.statusBadge) {

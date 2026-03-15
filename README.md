@@ -31,6 +31,32 @@ Most node editors let shell convenience leak into the graph hot path. This repos
 - Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
 - Architecture, adoption, and performance-boundary docs
 
+## Product Demo
+
+Use this surface when you want to understand the editor as a product:
+
+- small default graph
+- direct editing feel
+- lightweight runtime feedback
+- clear `Web Component`-first story
+
+Run it with:
+
+```bash
+pnpm demo:web-component
+```
+
+## Performance Lab
+
+Use this surface when you want to evaluate runtime behavior:
+
+- explicit `Product Demo / Performance Lab` mode split inside the demo surface
+- fixture selector for `basic / 100 / 500 / 1000`
+- diagnostics for backend, kernel source, node count, edge count, and zoom
+- benchmark-oriented reading of the same editor contract
+
+The lab is intentionally part of the public product surface rather than a hidden dev-only page.
+
 ## Demo surfaces
 
 Primary host:
@@ -75,6 +101,13 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - Primary: `@minislively/workflow-element`
 - Secondary: `@minislively/workflow-react`
 - Supporting: shared types, engine, renderers, and wasm kernel packages
+
+## Benchmark fixtures
+
+- `basic`: product-oriented default graph
+- `100`: light lab fixture
+- `500`: medium lab fixture
+- `1000`: heavier public baseline fixture
 
 ## Package map
 
