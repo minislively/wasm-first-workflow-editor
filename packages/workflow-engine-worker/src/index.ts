@@ -1,5 +1,4 @@
 import {
-  clampZoom,
   defaultViewport,
   findNodeAt,
   getSelectionSummary,
@@ -20,7 +19,12 @@ import type {
   ThemeTokens,
   ViewportState,
 } from '@minislively/workflow-types'
-import { computeSceneBounds } from '@minislively/workflow-wasm-core'
+import {
+  computeSceneBounds,
+  getFallbackKernel,
+  loadWasmKernel,
+  type WorkflowWasmKernel,
+} from '@minislively/workflow-wasm-core'
 
 import { mergeTheme } from '@minislively/workflow-editor-shell'
 
@@ -49,6 +53,7 @@ export class EngineController {
   private renderer?: RendererHandle
   private theme: ThemeTokens
   private backend: RendererBackend = 'canvas2d'
+  private wasmKernel: WorkflowWasmKernel = getFallbackKernel()
 
   constructor(
     canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -63,6 +68,9 @@ export class EngineController {
       edges: [],
     }
     this.theme = mergeTheme(initialTheme)
+    void loadWasmKernel().then((kernel) => {
+      this.wasmKernel = kernel
+    })
   }
 
   handle(command: EngineCommand) {
@@ -106,11 +114,11 @@ export class EngineController {
         this.render(false)
         break
       case 'zoom.in':
-        this.viewport.zoom = clampZoom(this.viewport.zoom + 0.12)
+        this.viewport.zoom = this.wasmKernel.clampZoom(this.viewport.zoom + 0.12)
         this.render(false)
         break
       case 'zoom.out':
-        this.viewport.zoom = clampZoom(this.viewport.zoom - 0.12)
+        this.viewport.zoom = this.wasmKernel.clampZoom(this.viewport.zoom - 0.12)
         this.render(false)
         break
       case 'theme.set':
@@ -217,5 +225,8 @@ export class EngineController {
     if (!bounds) {
       return
     }
+
+    this.wasmKernel.boundsWidth(bounds.minX, bounds.maxX)
+    this.wasmKernel.boundsHeight(bounds.minY, bounds.maxY)
   }
 }

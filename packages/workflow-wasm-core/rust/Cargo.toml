@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 description = "Rust/WASM kernel seam for the minislively workflow editor"
+repository = "https://github.com/minislively/wasm-first-workflow-editor"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
 
 [profile.release]
 lto = true

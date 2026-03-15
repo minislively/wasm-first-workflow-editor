@@ -13,6 +13,7 @@
     "lint": "tsc --noEmit -p tooling/tsconfig.workspace.json",
     "typecheck": "tsc --noEmit -p tooling/tsconfig.workspace.json",
     "test": "vitest run",
+    "wasm:build": "node tooling/scripts/build-wasm.mjs",
     "wasm:test": "cargo test --manifest-path packages/workflow-wasm-core/rust/Cargo.toml"
   },
   "devDependencies": {

@@ -35,6 +35,7 @@ pnpm bench:fixtures
 pnpm typecheck
 pnpm test
 pnpm wasm:test
+pnpm wasm:build
 pnpm build
 pnpm demo:web-component
 ```
@@ -44,6 +45,8 @@ In another terminal:
 ```bash
 pnpm demo:react
 ```
+
+If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to install it and the rest of the repo still runs on the TypeScript fallback path.
 
 ## Package map
 

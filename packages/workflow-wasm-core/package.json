@@ -5,6 +5,10 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "rust"
+  ],
   "dependencies": {
     "@minislively/workflow-types": "workspace:*"
   }

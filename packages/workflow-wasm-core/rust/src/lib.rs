@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SceneBounds {
     pub min_x: f64,
@@ -16,18 +18,18 @@ impl SceneBounds {
     }
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn wf_clamp_zoom(zoom: f64) -> f64 {
+#[wasm_bindgen]
+pub fn wf_clamp_zoom(zoom: f64) -> f64 {
     zoom.clamp(0.45, 2.25)
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn wf_bounds_width(min_x: f64, max_x: f64) -> f64 {
+#[wasm_bindgen]
+pub fn wf_bounds_width(min_x: f64, max_x: f64) -> f64 {
     max_x - min_x
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn wf_bounds_height(min_y: f64, max_y: f64) -> f64 {
+#[wasm_bindgen]
+pub fn wf_bounds_height(min_y: f64, max_y: f64) -> f64 {
     max_y - min_y
 }
 

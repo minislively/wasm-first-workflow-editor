@@ -16,3 +16,5 @@ This baseline proves the package seams and runnable demo flow first. The `workfl
 - Shell owns branding, toolbar, inspector, and host layout.
 - Engine owns viewport state, hit testing, graph movement, and render scheduling.
 - Adapter packages must not pull host framework state into the engine hot path.
+
+See [WASM integration path](./wasm.md) for the Rust crate and generated-package bridge model.
