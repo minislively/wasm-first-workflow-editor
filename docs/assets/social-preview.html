@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WASM-First Workflow Editor</title>
+    <style>
+      :root {
+        color: #eff6ff;
+        background:
+          radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 24rem),
+          radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.16), transparent 20rem),
+          linear-gradient(180deg, #08111f, #020617 58%);
+        font-family: "Space Grotesk", "IBM Plex Sans", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 1280px;
+        height: 640px;
+        overflow: hidden;
+      }
+
+      .frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding: 48px;
+      }
+
+      .card {
+        display: grid;
+        grid-template-columns: 1.2fr 0.9fr;
+        gap: 24px;
+        width: 100%;
+        height: 100%;
+      }
+
+      .hero,
+      .panel,
+      .mini {
+        border: 1px solid rgba(71, 85, 105, 0.42);
+        border-radius: 28px;
+        background: rgba(8, 15, 28, 0.82);
+        box-shadow: 0 24px 64px rgba(2, 6, 23, 0.38);
+        backdrop-filter: blur(16px);
+      }
+
+      .hero {
+        padding: 36px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: #5eead4;
+        font-size: 14px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 68px;
+        line-height: 0.96;
+        max-width: 9ch;
+      }
+
+      .lede {
+        margin-top: 18px;
+        max-width: 48ch;
+        color: #9fb4cf;
+        font-size: 22px;
+        line-height: 1.45;
+      }
+
+      .rail {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 18px;
+      }
+
+      .panel {
+        padding: 28px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .label {
+        color: #7dd3fc;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 32px;
+        font-weight: 700;
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mini {
+        padding: 18px 20px;
+      }
+
+      .mini strong {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 8px;
+      }
+
+      .mini span {
+        color: #9fb4cf;
+        font-size: 16px;
+      }
+
+      .bar {
+        position: absolute;
+        left: 48px;
+        right: 48px;
+        bottom: 40px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pill {
+        border: 1px solid rgba(71, 85, 105, 0.42);
+        border-radius: 999px;
+        padding: 10px 16px;
+        background: rgba(15, 23, 42, 0.82);
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="card">
+        <section class="hero">
+          <p class="eyebrow">minislively / v0.1.0</p>
+          <h1>WASM-first workflow editor</h1>
+          <p class="lede">
+            Framework-agnostic, embeddable, Web Component-first.
+            Worker-aware engine, WebGL primary renderer, Rust/WASM kernel seam.
+          </p>
+        </section>
+        <section class="rail">
+          <div class="panel">
+            <div>
+              <div class="label">Primary path</div>
+              <div class="value">Web Component</div>
+            </div>
+            <div>
+              <div class="label">Secondary path</div>
+              <div class="value">React host</div>
+            </div>
+            <div class="stack">
+              <div class="mini">
+                <strong>Engine strict</strong>
+                <span>Viewport and geometry stay on the engine side.</span>
+              </div>
+              <div class="mini">
+                <strong>Shell flexible</strong>
+                <span>Teams brand the shell without reopening the hot path.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="bar">
+        <div class="pill">Worker + OffscreenCanvas + WebGL</div>
+        <div class="pill">Rust/WASM bridge</div>
+        <div class="pill">Embeddable OSS monorepo</div>
+      </div>
+    </div>
+  </body>
+</html>

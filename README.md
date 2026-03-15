@@ -98,6 +98,7 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - [Performance baseline](./docs/performance/baselines.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Release notes](./docs/release/v0.1.0.md)
+- [Launch post draft](./docs/release/launch-post.md)
 
 ## License
 
