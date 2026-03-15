@@ -5,7 +5,8 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:44173',
+    baseURL:
+      process.env.PLAYWRIGHT_WEB_COMPONENT_BASE_URL ?? 'http://127.0.0.1:44173',
     trace: 'on-first-retry',
   },
   webServer: process.env.PLAYWRIGHT_MANUAL_SERVERS === '1'

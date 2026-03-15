@@ -1,20 +1,26 @@
 import { spawn } from 'node:child_process'
+import net from 'node:net'
+const ports = {
+  webComponent: await getFreePort(),
+  react: await getFreePort(),
+  performanceLab: await getFreePort(),
+}
 
 const servers = [
   {
     command: 'pnpm',
-    args: ['serve:web-component'],
-    url: 'http://127.0.0.1:44173',
+    args: ['--filter', 'demo-web-component', 'exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(ports.webComponent)],
+    url: `http://127.0.0.1:${ports.webComponent}`,
   },
   {
     command: 'pnpm',
-    args: ['serve:performance-lab'],
-    url: 'http://127.0.0.1:44175',
+    args: ['--filter', 'performance-lab', 'exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(ports.performanceLab)],
+    url: `http://127.0.0.1:${ports.performanceLab}`,
   },
   {
     command: 'pnpm',
-    args: ['serve:react'],
-    url: 'http://127.0.0.1:44174',
+    args: ['--filter', 'demo-react-host', 'exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(ports.react)],
+    url: `http://127.0.0.1:${ports.react}`,
   },
 ]
 
@@ -33,7 +39,7 @@ try {
 
   await Promise.all(servers.map((server) => waitForHttp(server.url)))
 
-  await runPlaywright()
+  await runPlaywright(ports)
 } finally {
   await Promise.all(children.map(stopChild))
 }
@@ -57,13 +63,16 @@ async function waitForHttp(url) {
   throw new Error(`Timed out waiting for ${url}`)
 }
 
-function runPlaywright() {
+function runPlaywright(ports) {
   return new Promise((resolve, reject) => {
     const child = spawn('pnpm', ['exec', 'playwright', 'test'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
         PLAYWRIGHT_MANUAL_SERVERS: '1',
+        PLAYWRIGHT_WEB_COMPONENT_BASE_URL: `http://127.0.0.1:${ports.webComponent}`,
+        PLAYWRIGHT_REACT_BASE_URL: `http://127.0.0.1:${ports.react}`,
+        PLAYWRIGHT_PERFORMANCE_LAB_BASE_URL: `http://127.0.0.1:${ports.performanceLab}`,
       },
     })
     child.stdout.on('data', (chunk) => process.stdout.write(chunk))
@@ -94,5 +103,22 @@ function stopChild(child) {
         child.kill('SIGKILL')
       }
     }, 3000)
+  })
+}
+
+function getFreePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer()
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address()
+      if (!address || typeof address === 'string') {
+        server.close()
+        reject(new Error('Failed to allocate a free port'))
+        return
+      }
+      const { port } = address
+      server.close(() => resolve(port))
+    })
+    server.on('error', reject)
   })
 }
