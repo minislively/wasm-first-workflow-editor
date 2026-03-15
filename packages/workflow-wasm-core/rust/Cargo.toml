@@ -1,0 +1,13 @@
+[package]
+name = "workflow_wasm_core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Rust/WASM kernel seam for the minislively workflow editor"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = true
+opt-level = "s"

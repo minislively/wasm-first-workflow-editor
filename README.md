@@ -2,6 +2,16 @@
 
 Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
 
+## v0 promise
+
+This repository does not promise infinite scale. It promises a measurable baseline:
+
+- `Web Component` is the primary integration path
+- `React` stays a secondary host wrapper
+- the graph stage stays on an engine-shaped path
+- a runnable minimum demo exists from a clean checkout
+- benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+
 ## What ships in this baseline
 
 - Runnable `Web Component` demo
@@ -24,6 +34,7 @@ pnpm install
 pnpm bench:fixtures
 pnpm typecheck
 pnpm test
+pnpm wasm:test
 pnpm build
 pnpm demo:web-component
 ```
@@ -38,7 +49,7 @@ pnpm demo:react
 
 - `@minislively/workflow-types`: shared protocol and graph types
 - `@minislively/workflow-core`: graph helpers, hit testing, viewport math
-- `@minislively/workflow-wasm-core`: placeholder seam for Rust/WASM compute kernels
+- `@minislively/workflow-wasm-core`: TypeScript bridge plus Rust/WASM kernel seam
 - `@minislively/workflow-engine-worker`: engine controller for worker and main-thread fallback
 - `@minislively/workflow-renderer-webgl`: primary GPU renderer
 - `@minislively/workflow-renderer-canvas`: fallback canvas renderer
@@ -52,3 +63,8 @@ pnpm demo:react
 - [Architecture](./docs/architecture/overview.md)
 - [Web Component adoption](./docs/adoption/web-component.md)
 - [Performance boundary](./docs/performance/boundaries.md)
+- [Performance baseline](./docs/performance/baselines.md)
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

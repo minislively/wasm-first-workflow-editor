@@ -1,8 +1,9 @@
 import type { GraphDocument } from '@minislively/workflow-types'
 
 export const wasmCoreStatus = {
-  implementation: 'typescript-placeholder',
+  implementation: 'rust-entrypoint-scaffold',
   target: 'rust-wasm',
+  rustCratePath: 'packages/workflow-wasm-core/rust',
 }
 
 export function computeSceneBounds(graph: GraphDocument) {
@@ -23,4 +24,8 @@ export function computeSceneBounds(graph: GraphDocument) {
     width: maxX - minX,
     height: maxY - minY,
   }
+}
+
+export function clampZoomKernel(zoom: number) {
+  return Math.min(2.25, Math.max(0.45, zoom))
 }

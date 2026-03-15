@@ -12,7 +12,8 @@
     "bench:smoke": "node tooling/scripts/bench-smoke.mjs",
     "lint": "tsc --noEmit -p tooling/tsconfig.workspace.json",
     "typecheck": "tsc --noEmit -p tooling/tsconfig.workspace.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "wasm:test": "cargo test --manifest-path packages/workflow-wasm-core/rust/Cargo.toml"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

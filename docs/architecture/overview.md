@@ -9,7 +9,7 @@
 
 ## v0 reality
 
-This baseline proves the package seams and runnable demo flow first. The `workflow-wasm-core` package is kept as the compute seam for Rust/WASM work, while the initial interaction helpers are implemented in TypeScript so the repository can run immediately.
+This baseline proves the package seams and runnable demo flow first. The `workflow-wasm-core` package now includes a real Rust crate entrypoint so the repository can grow into actual WASM kernels without reshaping package boundaries, while the initial interaction helpers remain in TypeScript so the repository can run immediately.
 
 ## Boundary rule
 
