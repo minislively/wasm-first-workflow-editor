@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Generate benchmark fixtures
         run: pnpm bench:fixtures
 
@@ -54,6 +57,9 @@ jobs:
 
       - name: App builds
         run: pnpm build
+
+      - name: Browser E2E
+        run: pnpm test:e2e
 
       - name: Benchmark smoke
         run: pnpm bench:smoke
