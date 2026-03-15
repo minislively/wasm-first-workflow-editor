@@ -54,14 +54,30 @@ Use this surface when you want to evaluate runtime behavior:
 - fixture selector for `basic / 100 / 500 / 1000`
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
+- requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
+- syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
 - benchmark-oriented reading of the same editor contract
 
 The lab is intentionally part of the public product surface rather than a hidden dev-only page.
+Use it to compare `auto` versus forced runtime modes while keeping fallback reasons visible.
 
 Default state model:
 
 - `Product Demo`: `fixture=basic`, `editability=editable`, `diagnosticsVisibility=hidden`
 - `Performance Lab`: `fixture=100`, `editability=editable`, `diagnosticsVisibility=full`
+
+Evaluation guidance:
+
+- compare `requested` and `active` runtime rows after changing renderer or kernel preferences
+- treat `Fallback visible` as a first-class result, not a hidden error
+- keep the public fixture promise bounded to `100 / 500 / 1000` until heavier scenarios are explicitly validated
+
+Recommended evaluation path:
+
+1. Start in `Performance Lab` and confirm the current renderer, kernel source, and fallback state.
+2. Step through the public fixtures `100`, `500`, and `1000`.
+3. Compare `rendererPreference` and `kernelPreference` in `auto` versus forced modes.
+4. Switch `editability` to `read-only` if your target integration is a viewer rather than an editor.
 
 ## Demo surfaces
 
@@ -135,6 +151,7 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - [React host guidance](./docs/adoption/react-host.md)
 - [Performance boundary](./docs/performance/boundaries.md)
 - [Performance baseline](./docs/performance/baselines.md)
+- [Performance evaluation guide](./docs/performance/evaluation.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Release notes](./docs/release/v0.1.0.md)
 - [Launch post draft](./docs/release/launch-post.md)

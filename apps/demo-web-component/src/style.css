@@ -156,6 +156,18 @@ h1 {
   line-height: 1.55;
 }
 
+.evaluation-card.tone-info {
+  border-color: rgba(125, 211, 252, 0.5);
+}
+
+.evaluation-card.tone-success {
+  border-color: rgba(20, 184, 166, 0.52);
+}
+
+.evaluation-card.tone-warning {
+  border-color: rgba(251, 191, 36, 0.58);
+}
+
 .panel-label {
   margin-bottom: 12px;
   font-size: 12px;
@@ -173,6 +185,10 @@ h1 {
 .control-stack {
   display: grid;
   gap: 12px;
+}
+
+.lab-controls-copy {
+  margin-bottom: 12px;
 }
 
 .control-stack label {
@@ -197,6 +213,29 @@ h1 {
   gap: 12px;
 }
 
+.diag-banner {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(71, 85, 105, 0.32);
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.diag-banner.is-ok {
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.diag-banner.is-warning {
+  border-color: rgba(251, 191, 36, 0.42);
+}
+
+.diag-banner span {
+  color: #9fb4cf;
+  line-height: 1.5;
+}
+
 .diag-grid span {
   display: block;
   margin-bottom: 4px;
@@ -207,6 +246,36 @@ h1 {
 .diag-grid strong {
   margin-bottom: 0;
   font-size: 0.98rem;
+}
+
+.diag-comparison-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.diag-comparison-item {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(71, 85, 105, 0.32);
+  background: rgba(15, 23, 42, 0.74);
+}
+
+.diag-comparison-item span {
+  color: #9fb4cf;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.diag-comparison-item.is-match {
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.diag-comparison-item.is-mismatch {
+  border-color: rgba(251, 191, 36, 0.42);
 }
 
 .diagnostics-card.is-hidden {

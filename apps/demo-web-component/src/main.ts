@@ -14,6 +14,13 @@ import {
   type DemoSurfaceState,
   type SurfaceMode,
 } from './surface-state'
+import {
+  applyReadyDiagnostics,
+  applyStatsDiagnostics,
+  createInitialDiagnosticsState,
+  createSurfaceViewModel,
+  markDiagnosticsSyncing,
+} from './surface-view'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -21,31 +28,13 @@ if (!app) {
   throw new Error('App root was not found.')
 }
 
-type DiagnosticsState = {
-  backend: string
-  kernelSource: string
-  nodeCount: number
-  edgeCount: number
-  zoom: number
-  fallbackReason: string | null
-  preferences: RuntimePreferences
-}
-
 const state: DemoSurfaceState = createSurfaceState('product-demo')
 
-let diagnostics: DiagnosticsState = {
-  backend: 'pending',
-  kernelSource: 'pending',
-  nodeCount: 0,
-  edgeCount: 0,
-  zoom: 1,
-  fallbackReason: null,
-  preferences: {
-    editability: 'editable',
-    rendererPreference: 'auto',
-    kernelPreference: 'auto',
-  },
-}
+let diagnostics = createInitialDiagnosticsState({
+  editability: 'editable',
+  rendererPreference: 'auto',
+  kernelPreference: 'auto',
+})
 
 let selection: SelectionSummary[] = []
 let currentGraph: GraphDocument = getFixtureGraph(state.fixture)
@@ -88,6 +77,9 @@ app.innerHTML = `
           </section>
           <section class="panel-card lab-controls-card" data-role="lab-controls-card">
             <div class="panel-label">Lab Controls</div>
+            <p class="lab-controls-copy">
+              Change one variable at a time so fixture size, editability, and forced runtime behavior stay comparable.
+            </p>
             <div class="control-stack">
               <label>
                 <span>Editability</span>
@@ -114,6 +106,7 @@ app.innerHTML = `
               </label>
             </div>
           </section>
+          <section class="panel-card evaluation-card" data-role="evaluation-card"></section>
           <section class="panel-card diagnostics-card" data-role="diagnostics-card"></section>
           <section class="panel-card">
             <div class="panel-label">Selection</div>
@@ -149,13 +142,7 @@ editor.element.addEventListener('ready', (event) => {
     return
   }
 
-  diagnostics = {
-    ...diagnostics,
-    backend: detail.backend,
-    kernelSource: detail.kernelSource,
-    fallbackReason: detail.fallbackReason,
-    preferences: detail.preferences,
-  }
+  diagnostics = applyReadyDiagnostics(diagnostics, detail)
   renderPanels()
 })
 
@@ -165,15 +152,7 @@ editor.element.addEventListener('stats', (event) => {
     return
   }
 
-  diagnostics = {
-    backend: detail.backend,
-    kernelSource: detail.kernelSource,
-    nodeCount: detail.nodeCount,
-    edgeCount: detail.edgeCount,
-    zoom: detail.zoom,
-    fallbackReason: detail.fallbackReason,
-    preferences: detail.preferences,
-  }
+  diagnostics = applyStatsDiagnostics(diagnostics, detail)
   renderPanels()
 })
 
@@ -201,6 +180,17 @@ document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((button) => 
   button.addEventListener('click', async () => {
     Object.assign(state, createSurfaceState(button.dataset.mode as SurfaceMode))
     currentGraph = getFixtureGraph(state.fixture)
+    diagnostics = markDiagnosticsSyncing(
+      diagnostics,
+      {
+        editability: state.editability,
+        rendererPreference: state.rendererPreference,
+        kernelPreference: state.kernelPreference,
+      },
+      currentGraph.nodes.length,
+      currentGraph.edges.length,
+    )
+    renderPanels()
     editor.setPreferences({
       editability: state.editability,
       rendererPreference: state.rendererPreference,
@@ -216,6 +206,17 @@ document.querySelectorAll<HTMLButtonElement>('[data-fixture]').forEach((button) 
   button.addEventListener('click', async () => {
     state.fixture = button.dataset.fixture as FixtureKey
     currentGraph = getFixtureGraph(state.fixture)
+    diagnostics = markDiagnosticsSyncing(
+      diagnostics,
+      {
+        editability: state.editability,
+        rendererPreference: state.rendererPreference,
+        kernelPreference: state.kernelPreference,
+      },
+      currentGraph.nodes.length,
+      currentGraph.edges.length,
+    )
+    renderPanels()
     await editor.setGraph(currentGraph)
     selection = []
     renderPanels()
@@ -240,6 +241,16 @@ document.querySelectorAll<HTMLSelectElement>('[data-control]').forEach((select) 
         break
     }
 
+    diagnostics = markDiagnosticsSyncing(
+      diagnostics,
+      {
+        editability: state.editability,
+        rendererPreference: state.rendererPreference,
+        kernelPreference: state.kernelPreference,
+      },
+      currentGraph.nodes.length,
+      currentGraph.edges.length,
+    )
     editor.setPreferences({
       editability: state.editability,
       rendererPreference: state.rendererPreference,
@@ -255,8 +266,10 @@ function renderPanels() {
   const summary = document.querySelector<HTMLElement>('[data-role="surface-summary"]')
   const modeCopy = document.querySelector<HTMLElement>('[data-role="mode-copy"]')
   const labControlsCard = document.querySelector<HTMLElement>('[data-role="lab-controls-card"]')
+  const evaluationCard = document.querySelector<HTMLElement>('[data-role="evaluation-card"]')
   const diagnosticsCard = document.querySelector<HTMLElement>('[data-role="diagnostics-card"]')
   const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
+  const viewModel = createSurfaceViewModel(state, diagnostics)
 
   document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((button) => {
     button.classList.toggle('is-active', button.dataset.mode === state.surfaceMode)
@@ -271,40 +284,49 @@ function renderPanels() {
     select.value = String(state[key])
   })
 
-  summary!.textContent =
-    state.surfaceMode === 'product-demo'
-      ? 'Start with the built-in editor feel, then step into the lab when you need proof.'
-      : 'Use fixtures and diagnostics to judge runtime fit without guessing.'
+  summary!.textContent = viewModel.summary
 
   modeCopy!.innerHTML =
-    state.surfaceMode === 'product-demo'
-      ? `
-        <div class="panel-label">Product Demo</div>
-        <strong>Default experience for first-time OSS users</strong>
-        <p>Focus on the usable editor surface first. Diagnostics stay hidden here so the page still feels like a product, not a benchmark console.</p>
-      `
-      : `
-        <div class="panel-label">Performance Lab</div>
-        <strong>Evaluation mode for performance-sensitive teams</strong>
-        <p>Load heavier fixtures, inspect runtime backend/kernel state, and compare what the engine is really doing before you adopt it.</p>
-      `
+    `
+      <div class="panel-label">${viewModel.modeLabel}</div>
+      <strong>${viewModel.modeTitle}</strong>
+      <p>${viewModel.modeDescription}</p>
+    `
 
-  labControlsCard!.classList.toggle('is-hidden', state.surfaceMode !== 'performance-lab')
-  diagnosticsCard!.classList.toggle('is-hidden', state.diagnosticsVisibility === 'hidden')
+  labControlsCard!.classList.toggle('is-hidden', !viewModel.showLabControls)
+  evaluationCard!.className = `panel-card evaluation-card tone-${viewModel.evaluationTone}`
+  evaluationCard!.classList.toggle('is-hidden', !viewModel.showEvaluation)
+  evaluationCard!.innerHTML = `
+    <div class="panel-label">Evaluation Summary</div>
+    <strong>${viewModel.evaluationTitle}</strong>
+    <p>${viewModel.evaluationDetail}</p>
+    <div class="diag-comparison-list">
+      ${viewModel.comparisonRows
+        .map(
+          (row) => `
+            <article class="diag-comparison-item ${row.matches ? 'is-match' : 'is-mismatch'}">
+              <span>${row.label}</span>
+              <strong>${row.requested} -> ${row.active}</strong>
+            </article>
+          `,
+        )
+        .join('')}
+    </div>
+  `
+  diagnosticsCard!.classList.toggle('is-hidden', !viewModel.showDiagnostics)
   diagnosticsCard!.innerHTML = `
     <div class="panel-label">Diagnostics</div>
+    <div class="diag-banner ${diagnostics.fallbackReason ? 'is-warning' : 'is-ok'}">
+      <strong>${viewModel.diagnosticsBannerTitle}</strong>
+      <span>${viewModel.diagnosticsBannerDetail}</span>
+    </div>
     <div class="diag-grid">
-      <div><span>Mode</span><strong>${state.surfaceMode}</strong></div>
-      <div><span>Fixture</span><strong>${state.fixture}</strong></div>
-      <div><span>Renderer</span><strong>${diagnostics.backend}</strong></div>
-      <div><span>Kernel</span><strong>${diagnostics.kernelSource}</strong></div>
-      <div><span>Fallback</span><strong>${diagnostics.fallbackReason ?? 'none'}</strong></div>
-      <div><span>Nodes</span><strong>${diagnostics.nodeCount}</strong></div>
-      <div><span>Edges</span><strong>${diagnostics.edgeCount}</strong></div>
-      <div><span>Zoom</span><strong>${diagnostics.zoom.toFixed(2)}x</strong></div>
-      <div><span>Editability</span><strong>${diagnostics.preferences.editability}</strong></div>
-      <div><span>Renderer pref</span><strong>${diagnostics.preferences.rendererPreference}</strong></div>
-      <div><span>Kernel pref</span><strong>${diagnostics.preferences.kernelPreference}</strong></div>
+      ${viewModel.diagnosticsRows
+        .map(
+          (row) =>
+            `<div><span>${row.label}</span><strong>${row.value}</strong></div>`,
+        )
+        .join('')}
     </div>
   `
 

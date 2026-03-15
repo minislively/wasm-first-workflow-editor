@@ -98,4 +98,53 @@ describe('workflow-element', () => {
     expect(statsBadge.textContent).toContain('100 nodes')
     expect(statsBadge.textContent).toContain('rust-wasm')
   })
+
+  it('keeps forced runtime preferences and fallback reason visible in stats', () => {
+    defineWorkflowEditor()
+    const element = document.createElement('workflow-editor') as WorkflowEditorElement & {
+      statsBadge?: HTMLSpanElement
+      handleEngineEvent: (event: unknown) => void
+    }
+
+    const statsBadge = document.createElement('span')
+    element.statsBadge = statsBadge
+
+    let received: unknown
+    element.addEventListener('stats', (event) => {
+      received = (event as CustomEvent).detail
+    })
+
+    element.handleEngineEvent({
+      type: 'stats',
+      backend: 'canvas2d',
+      kernelSource: 'typescript-fallback',
+      nodeCount: 500,
+      edgeCount: 499,
+      zoom: 0.9,
+      preferences: {
+        editability: 'read-only',
+        rendererPreference: 'canvas',
+        kernelPreference: 'ts-fallback',
+      },
+      fallbackReason: 'kernel forced to typescript fallback',
+    })
+
+    expect(received).toEqual({
+      type: 'stats',
+      backend: 'canvas2d',
+      kernelSource: 'typescript-fallback',
+      nodeCount: 500,
+      edgeCount: 499,
+      zoom: 0.9,
+      preferences: {
+        editability: 'read-only',
+        rendererPreference: 'canvas',
+        kernelPreference: 'ts-fallback',
+      },
+      fallbackReason: 'kernel forced to typescript fallback',
+    })
+    expect(statsBadge.textContent).toContain('500 nodes')
+    expect(statsBadge.textContent).toContain('canvas2d')
+    expect(statsBadge.textContent).toContain('typescript-fallback')
+  })
 })

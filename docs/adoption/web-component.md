@@ -73,6 +73,21 @@ element.addEventListener('change', (event) => {
 - `change`: emits the current graph document when graph state changes
 - `stats`: emits runtime diagnostics such as node count, edge count, zoom, backend, kernel source, runtime preferences, and fallback reason
 
+For performance-sensitive hosts, treat `ready` + `stats` as an evaluation pair:
+
+- `ready` confirms the active backend/kernel path after preference changes
+- `stats` confirms the graph/zoom counts for the currently loaded fixture
+- when a host exposes forced renderer/kernel controls, show both the requested preference and the active runtime preference until the next `stats` event arrives
+- surface `fallbackReason` directly rather than collapsing it into a badge or hiding it in logs
+
+For performance-sensitive evaluation, treat `stats` as the public contract for reading:
+
+- which renderer and kernel path actually won
+- whether the current mode came from `auto` resolution or a forced preference
+- whether an explicit fallback reason needs to be shown to users or operators
+
+That keeps hosts out of badge scraping and other shell-only heuristics.
+
 ## Non-React host example
 
 See [non-react-host.html](./non-react-host.html) for a plain HTML host that mounts the editor, listens to `ready`, `selection`, and `change`, and applies a host-owned theme.
