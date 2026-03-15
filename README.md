@@ -65,6 +65,7 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 
 - [Architecture](./docs/architecture/overview.md)
 - [Web Component adoption](./docs/adoption/web-component.md)
+- [React host guidance](./docs/adoption/react-host.md)
 - [Performance boundary](./docs/performance/boundaries.md)
 - [Performance baseline](./docs/performance/baselines.md)
 

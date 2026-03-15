@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workflow Editor Non-React Host Example</title>
+    <style>
+      :root {
+        color: #ecf3ff;
+        background: linear-gradient(180deg, #08111f, #020617 58%);
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      main {
+        width: min(1280px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 24px 0 48px;
+      }
+
+      .shell {
+        display: grid;
+        gap: 16px;
+      }
+
+      .host-card {
+        border: 1px solid rgba(71, 85, 105, 0.42);
+        border-radius: 24px;
+        padding: 20px;
+        background: rgba(8, 15, 28, 0.78);
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="shell">
+        <section class="host-card">
+          <h1>Non-React host</h1>
+          <p>This page owns the shell and listens to editor events. The editor still owns the graph stage.</p>
+        </section>
+        <section id="mount"></section>
+        <section class="host-card">
+          <h2>Host event log</h2>
+          <pre id="log"></pre>
+        </section>
+      </div>
+    </main>
+
+    <script type="module">
+      import { createWorkflowEditor } from '@minislively/workflow-element'
+      import { createBasicDemoGraph } from '@minislively/workflow-nodepack-basic'
+
+      const log = document.querySelector('#log')
+      const { element } = await createWorkflowEditor({
+        mount: document.querySelector('#mount'),
+        graph: createBasicDemoGraph(),
+        theme: {
+          accent: '#14b8a6',
+          nodeSelected: '#14b8a6',
+        },
+      })
+
+      const write = (label, detail) => {
+        log.textContent = `${label}\n${JSON.stringify(detail, null, 2)}`
+      }
+
+      element.addEventListener('ready', (event) => write('ready', event.detail))
+      element.addEventListener('selection', (event) => write('selection', event.detail))
+      element.addEventListener('change', (event) => write('change', event.detail))
+    </script>
+  </body>
+</html>
