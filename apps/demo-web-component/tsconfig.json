@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "../..",
     "target": "ES2023",
     "useDefineForClassFields": true,
     "module": "ESNext",
@@ -20,7 +21,13 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "@minislively/*": [
+        "packages/*/src/index.ts",
+        "packages/*/src/index.tsx"
+      ]
+    }
   },
   "include": ["src"]
 }

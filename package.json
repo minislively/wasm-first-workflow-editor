@@ -10,8 +10,8 @@
     "demo:react": "pnpm --filter demo-react-host dev",
     "bench:fixtures": "node tooling/scripts/generate-fixtures.mjs",
     "bench:smoke": "node tooling/scripts/bench-smoke.mjs",
-    "lint": "tsc --noEmit -p tooling/tsconfig.workspace.json",
-    "typecheck": "tsc --noEmit -p tooling/tsconfig.workspace.json",
+    "lint": "pnpm typecheck",
+    "typecheck": "pnpm --filter demo-web-component exec tsc --noEmit && pnpm --filter demo-react-host exec tsc -b --pretty false",
     "test": "vitest run",
     "wasm:build": "node tooling/scripts/build-wasm.mjs",
     "wasm:test": "cargo test --manifest-path packages/workflow-wasm-core/rust/Cargo.toml"

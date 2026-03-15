@@ -1,4 +1,4 @@
-import type { GraphDocument } from '@minislively/workflow-types'
+import type { GraphDocument, Point, ViewportState } from '@minislively/workflow-types'
 
 export const wasmCoreStatus = {
   implementation: 'rust-entrypoint-scaffold',
@@ -13,6 +13,30 @@ export type WorkflowWasmKernel = {
   clampZoom: (zoom: number) => number
   boundsWidth: (minX: number, maxX: number) => number
   boundsHeight: (minY: number, maxY: number) => number
+  screenToWorldX: (
+    screenX: number,
+    viewportX: number,
+    zoom: number,
+  ) => number
+  screenToWorldY: (
+    screenY: number,
+    viewportY: number,
+    zoom: number,
+  ) => number
+  panViewportX: (viewportX: number, deltaX: number, zoom: number) => number
+  panViewportY: (viewportY: number, deltaY: number, zoom: number) => number
+  zoomViewportX: (
+    viewportX: number,
+    currentZoom: number,
+    nextZoom: number,
+    anchorX: number,
+  ) => number
+  zoomViewportY: (
+    viewportY: number,
+    currentZoom: number,
+    nextZoom: number,
+    anchorY: number,
+  ) => number
 }
 
 type WasmModule = {
@@ -20,6 +44,38 @@ type WasmModule = {
   wf_clamp_zoom?: (zoom: number) => number
   wf_bounds_width?: (minX: number, maxX: number) => number
   wf_bounds_height?: (minY: number, maxY: number) => number
+  wf_screen_to_world_x?: (
+    screenX: number,
+    viewportX: number,
+    zoom: number,
+  ) => number
+  wf_screen_to_world_y?: (
+    screenY: number,
+    viewportY: number,
+    zoom: number,
+  ) => number
+  wf_pan_viewport_x?: (
+    viewportX: number,
+    deltaX: number,
+    zoom: number,
+  ) => number
+  wf_pan_viewport_y?: (
+    viewportY: number,
+    deltaY: number,
+    zoom: number,
+  ) => number
+  wf_zoom_viewport_x?: (
+    viewportX: number,
+    currentZoom: number,
+    nextZoom: number,
+    anchorX: number,
+  ) => number
+  wf_zoom_viewport_y?: (
+    viewportY: number,
+    currentZoom: number,
+    nextZoom: number,
+    anchorY: number,
+  ) => number
 }
 
 let cachedKernel: Promise<WorkflowWasmKernel> | undefined
@@ -51,6 +107,10 @@ export function clampZoomKernel(zoom: number) {
 export async function loadWasmKernel(options?: {
   moduleUrl?: string
 }): Promise<WorkflowWasmKernel> {
+  if (options?.moduleUrl) {
+    return createKernel(options.moduleUrl)
+  }
+
   if (!cachedKernel) {
     cachedKernel = createKernel(options?.moduleUrl)
   }
@@ -65,6 +125,83 @@ export function getFallbackKernel(): WorkflowWasmKernel {
     clampZoom: clampZoomKernel,
     boundsWidth: (minX, maxX) => maxX - minX,
     boundsHeight: (minY, maxY) => maxY - minY,
+    screenToWorldX: (screenX, viewportX, zoom) => screenX / zoom + viewportX,
+    screenToWorldY: (screenY, viewportY, zoom) => screenY / zoom + viewportY,
+    panViewportX: (viewportX, deltaX, zoom) => viewportX - deltaX / zoom,
+    panViewportY: (viewportY, deltaY, zoom) => viewportY - deltaY / zoom,
+    zoomViewportX: (viewportX, currentZoom, nextZoom, anchorX) =>
+      viewportX + anchorX / currentZoom - anchorX / nextZoom,
+    zoomViewportY: (viewportY, currentZoom, nextZoom, anchorY) =>
+      viewportY + anchorY / currentZoom - anchorY / nextZoom,
+  }
+}
+
+export function screenToWorldPoint(
+  point: Point,
+  viewport: ViewportState,
+  kernel: WorkflowWasmKernel = getFallbackKernel(),
+): Point {
+  return {
+    x: kernel.screenToWorldX(point.x, viewport.x, viewport.zoom),
+    y: kernel.screenToWorldY(point.y, viewport.y, viewport.zoom),
+  }
+}
+
+export function panViewportState(
+  viewport: ViewportState,
+  deltaX: number,
+  deltaY: number,
+  kernel: WorkflowWasmKernel = getFallbackKernel(),
+): ViewportState {
+  return {
+    ...viewport,
+    x: kernel.panViewportX(viewport.x, deltaX, viewport.zoom),
+    y: kernel.panViewportY(viewport.y, deltaY, viewport.zoom),
+  }
+}
+
+export function zoomViewportState(
+  viewport: ViewportState,
+  delta: number,
+  anchor: Point,
+  kernel: WorkflowWasmKernel = getFallbackKernel(),
+): ViewportState {
+  const nextZoom = kernel.clampZoom(viewport.zoom + delta)
+
+  return {
+    x: kernel.zoomViewportX(viewport.x, viewport.zoom, nextZoom, anchor.x),
+    y: kernel.zoomViewportY(viewport.y, viewport.zoom, nextZoom, anchor.y),
+    zoom: nextZoom,
+  }
+}
+
+export function createKernelFromModule(module: WasmModule): WorkflowWasmKernel | null {
+  if (
+    typeof module.wf_clamp_zoom !== 'function' ||
+    typeof module.wf_bounds_width !== 'function' ||
+    typeof module.wf_bounds_height !== 'function' ||
+    typeof module.wf_screen_to_world_x !== 'function' ||
+    typeof module.wf_screen_to_world_y !== 'function' ||
+    typeof module.wf_pan_viewport_x !== 'function' ||
+    typeof module.wf_pan_viewport_y !== 'function' ||
+    typeof module.wf_zoom_viewport_x !== 'function' ||
+    typeof module.wf_zoom_viewport_y !== 'function'
+  ) {
+    return null
+  }
+
+  return {
+    source: 'rust-wasm',
+    initialized: true,
+    clampZoom: module.wf_clamp_zoom,
+    boundsWidth: module.wf_bounds_width,
+    boundsHeight: module.wf_bounds_height,
+    screenToWorldX: module.wf_screen_to_world_x,
+    screenToWorldY: module.wf_screen_to_world_y,
+    panViewportX: module.wf_pan_viewport_x,
+    panViewportY: module.wf_pan_viewport_y,
+    zoomViewportX: module.wf_zoom_viewport_x,
+    zoomViewportY: module.wf_zoom_viewport_y,
   }
 }
 
@@ -82,21 +219,7 @@ async function createKernel(moduleUrl?: string): Promise<WorkflowWasmKernel> {
       await module.default()
     }
 
-    if (
-      typeof module.wf_clamp_zoom !== 'function' ||
-      typeof module.wf_bounds_width !== 'function' ||
-      typeof module.wf_bounds_height !== 'function'
-    ) {
-      return fallback
-    }
-
-    return {
-      source: 'rust-wasm',
-      initialized: true,
-      clampZoom: module.wf_clamp_zoom,
-      boundsWidth: module.wf_bounds_width,
-      boundsHeight: module.wf_bounds_height,
-    }
+    return createKernelFromModule(module) ?? fallback
   } catch {
     return fallback
   }

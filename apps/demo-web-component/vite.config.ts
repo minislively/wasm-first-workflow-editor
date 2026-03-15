@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url))
+const rootDir = path.resolve(fileURLToPath(new URL('../..', import.meta.url)))
 
 export default defineConfig({
   resolve: {
@@ -13,9 +13,5 @@ export default defineConfig({
         replacement: path.resolve(rootDir, 'packages/$1/src'),
       },
     ],
-  },
-  test: {
-    environment: 'node',
-    include: ['packages/**/*.test.ts'],
   },
 })

@@ -3,9 +3,6 @@ import {
   findNodeAt,
   getSelectionSummary,
   moveNode,
-  panViewport,
-  screenToWorld,
-  zoomViewport,
 } from '@minislively/workflow-core'
 import { createCanvasRenderer } from '@minislively/workflow-renderer-canvas'
 import { createWebGlRenderer } from '@minislively/workflow-renderer-webgl'
@@ -23,7 +20,10 @@ import {
   computeSceneBounds,
   getFallbackKernel,
   loadWasmKernel,
+  panViewportState,
+  screenToWorldPoint,
   type WorkflowWasmKernel,
+  zoomViewportState,
 } from '@minislively/workflow-wasm-core'
 
 import { mergeTheme } from '@minislively/workflow-editor-shell'
@@ -107,22 +107,39 @@ export class EngineController {
         this.dragState = undefined
         break
       case 'zoom':
-        this.viewport = zoomViewport(
+        this.viewport = zoomViewportState(
           this.viewport,
           command.delta,
           command.anchor ?? {
             x: this.size.width / 2,
             y: this.size.height / 2,
           },
+          this.wasmKernel,
         )
         this.render(false)
         break
       case 'zoom.in':
-        this.viewport.zoom = this.wasmKernel.clampZoom(this.viewport.zoom + 0.12)
+        this.viewport = zoomViewportState(
+          this.viewport,
+          0.12,
+          {
+            x: this.size.width / 2,
+            y: this.size.height / 2,
+          },
+          this.wasmKernel,
+        )
         this.render(false)
         break
       case 'zoom.out':
-        this.viewport.zoom = this.wasmKernel.clampZoom(this.viewport.zoom - 0.12)
+        this.viewport = zoomViewportState(
+          this.viewport,
+          -0.12,
+          {
+            x: this.size.width / 2,
+            y: this.size.height / 2,
+          },
+          this.wasmKernel,
+        )
         this.render(false)
         break
       case 'theme.set':
@@ -145,7 +162,11 @@ export class EngineController {
   }
 
   private pointerDown(screenPoint: Point) {
-    const worldPoint = screenToWorld(screenPoint, this.viewport)
+    const worldPoint = screenToWorldPoint(
+      screenPoint,
+      this.viewport,
+      this.wasmKernel,
+    )
     const node = findNodeAt(this.graph, worldPoint)
 
     if (node) {
@@ -179,16 +200,21 @@ export class EngineController {
     }
 
     if (this.dragState.kind === 'pan') {
-      this.viewport = panViewport(
+      this.viewport = panViewportState(
         this.dragState.startViewport,
         screenPoint.x - this.dragState.startPointer.x,
         screenPoint.y - this.dragState.startPointer.y,
+        this.wasmKernel,
       )
       this.render(false)
       return
     }
 
-    const worldPoint = screenToWorld(screenPoint, this.viewport)
+    const worldPoint = screenToWorldPoint(
+      screenPoint,
+      this.viewport,
+      this.wasmKernel,
+    )
     this.graph = moveNode(this.graph, this.dragState.nodeId, {
       x: worldPoint.x - this.dragState.pointerOffset.x,
       y: worldPoint.y - this.dragState.pointerOffset.y,

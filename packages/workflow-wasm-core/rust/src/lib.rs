@@ -33,6 +33,46 @@ pub fn wf_bounds_height(min_y: f64, max_y: f64) -> f64 {
     max_y - min_y
 }
 
+#[wasm_bindgen]
+pub fn wf_screen_to_world_x(screen_x: f64, viewport_x: f64, zoom: f64) -> f64 {
+    screen_x / zoom + viewport_x
+}
+
+#[wasm_bindgen]
+pub fn wf_screen_to_world_y(screen_y: f64, viewport_y: f64, zoom: f64) -> f64 {
+    screen_y / zoom + viewport_y
+}
+
+#[wasm_bindgen]
+pub fn wf_pan_viewport_x(viewport_x: f64, delta_x: f64, zoom: f64) -> f64 {
+    viewport_x - delta_x / zoom
+}
+
+#[wasm_bindgen]
+pub fn wf_pan_viewport_y(viewport_y: f64, delta_y: f64, zoom: f64) -> f64 {
+    viewport_y - delta_y / zoom
+}
+
+#[wasm_bindgen]
+pub fn wf_zoom_viewport_x(
+    viewport_x: f64,
+    current_zoom: f64,
+    next_zoom: f64,
+    anchor_x: f64,
+) -> f64 {
+    viewport_x + anchor_x / current_zoom - anchor_x / next_zoom
+}
+
+#[wasm_bindgen]
+pub fn wf_zoom_viewport_y(
+    viewport_y: f64,
+    current_zoom: f64,
+    next_zoom: f64,
+    anchor_y: f64,
+) -> f64 {
+    viewport_y + anchor_y / current_zoom - anchor_y / next_zoom
+}
+
 pub fn compute_bounds(points: &[(f64, f64, f64, f64)]) -> Option<SceneBounds> {
     let first = points.first()?;
     let mut bounds = SceneBounds {
@@ -54,7 +94,10 @@ pub fn compute_bounds(points: &[(f64, f64, f64, f64)]) -> Option<SceneBounds> {
 
 #[cfg(test)]
 mod tests {
-    use super::{compute_bounds, wf_bounds_height, wf_bounds_width, wf_clamp_zoom};
+    use super::{
+        compute_bounds, wf_bounds_height, wf_bounds_width, wf_clamp_zoom, wf_pan_viewport_x,
+        wf_screen_to_world_x, wf_zoom_viewport_x,
+    };
 
     #[test]
     fn clamp_zoom_respects_public_limits() {
@@ -84,5 +127,12 @@ mod tests {
         assert_eq!(bounds.max_y, 128.0);
         assert_eq!(bounds.width(), 190.0);
         assert_eq!(bounds.height(), 148.0);
+    }
+
+    #[test]
+    fn viewport_helpers_match_expected_values() {
+        assert_eq!(wf_screen_to_world_x(200.0, -80.0, 1.0), 120.0);
+        assert_eq!(wf_pan_viewport_x(-80.0, 40.0, 1.0), -120.0);
+        assert_eq!(wf_zoom_viewport_x(-80.0, 1.0, 1.25, 200.0), -40.0);
     }
 }
