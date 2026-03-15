@@ -30,6 +30,12 @@ describe('workflow-element', () => {
       nodeCount: 100,
       edgeCount: 99,
       zoom: 1.25,
+      preferences: {
+        editability: 'editable',
+        rendererPreference: 'auto',
+        kernelPreference: 'auto',
+      },
+      fallbackReason: null,
     })
 
     expect(received).toEqual({
@@ -39,6 +45,12 @@ describe('workflow-element', () => {
       nodeCount: 100,
       edgeCount: 99,
       zoom: 1.25,
+      preferences: {
+        editability: 'editable',
+        rendererPreference: 'auto',
+        kernelPreference: 'auto',
+      },
+      fallbackReason: null,
     })
     expect(statsBadge.textContent).toContain('100 nodes')
     expect(statsBadge.textContent).toContain('rust-wasm')

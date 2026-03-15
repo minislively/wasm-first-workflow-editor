@@ -6,6 +6,7 @@ import type {
   EngineCommand,
   EngineEvent,
   GraphDocument,
+  RuntimePreferences,
   SelectionSummary,
   ThemeTokens,
   WorkflowEditorOptions,
@@ -16,6 +17,7 @@ const elementTag = 'workflow-editor'
 export class WorkflowEditorElement extends HTMLElement {
   graph: GraphDocument = createBasicDemoGraph()
   theme?: Partial<ThemeTokens>
+  preferences?: Partial<RuntimePreferences>
 
   private canvas?: HTMLCanvasElement
   private railList?: HTMLElement
@@ -59,6 +61,14 @@ export class WorkflowEditorElement extends HTMLElement {
     this.theme = theme
     this.applyHostTheme()
     this.post({ type: 'theme.set', theme })
+  }
+
+  setPreferences(preferences: Partial<RuntimePreferences>) {
+    this.preferences = {
+      ...this.preferences,
+      ...preferences,
+    }
+    this.post({ type: 'preferences.set', preferences })
   }
 
   private renderShell() {
@@ -166,6 +176,7 @@ export class WorkflowEditorElement extends HTMLElement {
           graph: this.graph,
           size,
           theme: this.theme,
+          preferences: this.preferences,
         },
         [offscreen],
       )
@@ -176,6 +187,7 @@ export class WorkflowEditorElement extends HTMLElement {
         graph: this.graph,
         size,
         theme: this.theme,
+        preferences: this.preferences,
       })
     }
 
@@ -192,7 +204,7 @@ export class WorkflowEditorElement extends HTMLElement {
     switch (event.type) {
       case 'ready':
         if (this.statusBadge) {
-          this.statusBadge.textContent = `${event.backend} · ${event.kernelSource}`
+          this.statusBadge.textContent = `${event.backend} · ${event.kernelSource}${event.fallbackReason ? ` · ${event.fallbackReason}` : ''}`
         }
         this.dispatchEvent(new CustomEvent('ready', { detail: event }))
         break
@@ -207,7 +219,7 @@ export class WorkflowEditorElement extends HTMLElement {
         break
       case 'stats':
         if (this.statsBadge) {
-          this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.kernelSource}`
+          this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.backend} · ${event.kernelSource}`
         }
         this.dispatchEvent(new CustomEvent('stats', { detail: event }))
         break
@@ -305,6 +317,9 @@ export async function createWorkflowEditor(options: WorkflowEditorOptions) {
   if (options.theme) {
     element.theme = options.theme
   }
+  if (options.preferences) {
+    element.preferences = options.preferences
+  }
   options.mount.replaceChildren(element)
 
   return {
@@ -312,6 +327,8 @@ export async function createWorkflowEditor(options: WorkflowEditorOptions) {
     dispose: () => element.remove(),
     setGraph: (graph: GraphDocument) => element.setGraph(graph),
     setTheme: (theme: Partial<ThemeTokens>) => element.setTheme(theme),
+    setPreferences: (preferences: Partial<RuntimePreferences>) =>
+      element.setPreferences(preferences),
   }
 }
 

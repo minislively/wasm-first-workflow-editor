@@ -140,6 +140,10 @@ h1 {
   padding: 18px 20px;
 }
 
+.panel-card.is-hidden {
+  display: none;
+}
+
 .panel-card strong {
   display: block;
   margin-bottom: 10px;
@@ -164,6 +168,27 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.control-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.control-stack label {
+  display: grid;
+  gap: 6px;
+  color: #9fb4cf;
+  font-size: 14px;
+}
+
+.control-stack select {
+  border: 1px solid rgba(71, 85, 105, 0.42);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.86);
+  color: #ecfeff;
+  padding: 10px 12px;
+  font: inherit;
 }
 
 .diag-grid {

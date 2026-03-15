@@ -5,7 +5,11 @@ let controller: EngineController | undefined
 
 self.onmessage = (message: MessageEvent<EngineCommand>) => {
   if (message.data.type === 'init' && message.data.canvas) {
-    controller = new EngineController(message.data.canvas, emitEvent, message.data.theme)
+    controller = new EngineController(
+      message.data.canvas,
+      emitEvent,
+      message.data.theme,
+    )
   }
 
   controller?.handle(message.data)

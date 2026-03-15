@@ -13,6 +13,7 @@ import type {
   GraphDocument,
   Point,
   RendererBackend,
+  RuntimePreferences,
   ThemeTokens,
   ViewportState,
 } from '@minislively/workflow-types'
@@ -54,6 +55,13 @@ export class EngineController {
   private theme: ThemeTokens
   private backend: RendererBackend = 'canvas2d'
   private wasmKernel: WorkflowWasmKernel = getFallbackKernel()
+  private preferences: RuntimePreferences = {
+    editability: 'editable',
+    rendererPreference: 'auto',
+    kernelPreference: 'auto',
+  }
+  private rendererFallbackReason: string | null = null
+  private kernelFallbackReason: string | null = null
 
   constructor(
     canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -68,13 +76,6 @@ export class EngineController {
       edges: [],
     }
     this.theme = mergeTheme(initialTheme)
-    void loadWasmKernel().then((kernel) => {
-      this.wasmKernel = kernel
-      if (this.renderer) {
-        this.emitRuntimeReady()
-        this.render(false)
-      }
-    })
   }
 
   handle(command: EngineCommand) {
@@ -83,10 +84,15 @@ export class EngineController {
         this.graph = command.graph
         this.theme = mergeTheme(command.theme)
         this.size = command.size
+        this.preferences = {
+          ...this.preferences,
+          ...command.preferences,
+        }
         this.mountRenderer()
         this.emitRuntimeReady()
         this.emitSelection()
         this.render(true)
+        void this.refreshKernel()
         break
       case 'load':
         this.graph = command.graph
@@ -146,6 +152,9 @@ export class EngineController {
         this.theme = mergeTheme(command.theme)
         this.render(false)
         break
+      case 'preferences.set':
+        void this.applyPreferences(command.preferences)
+        break
       case 'dispose':
         this.renderer?.dispose()
         this.dragState = undefined
@@ -154,11 +163,70 @@ export class EngineController {
   }
 
   private mountRenderer() {
-    const webgl = createWebGlRenderer(this.canvas, this.theme)
+    this.renderer?.dispose()
+    this.rendererFallbackReason = null
 
-    this.renderer = webgl ?? createCanvasRenderer(this.canvas, this.theme)
+    const preferred = this.preferences.rendererPreference
+    const webgl = preferred === 'canvas' ? null : createWebGlRenderer(this.canvas, this.theme)
+
+    if (preferred === 'webgl' && !webgl) {
+      this.renderer = createCanvasRenderer(this.canvas, this.theme)
+      this.rendererFallbackReason = 'webgl unavailable; fell back to canvas2d'
+    } else if (preferred === 'auto' && !webgl) {
+      this.renderer = createCanvasRenderer(this.canvas, this.theme)
+      this.rendererFallbackReason = 'auto renderer resolved to canvas2d fallback'
+    } else {
+      this.renderer = webgl ?? createCanvasRenderer(this.canvas, this.theme)
+    }
+
     this.backend = this.renderer.backend
     this.renderer.resize(this.size)
+  }
+
+  private async refreshKernel() {
+    const preference = this.preferences.kernelPreference
+    this.kernelFallbackReason = null
+
+    if (preference === 'ts-fallback') {
+      this.wasmKernel = getFallbackKernel()
+      this.kernelFallbackReason = 'kernel forced to typescript fallback'
+      this.emitRuntimeReady()
+      this.render(false)
+      return
+    }
+
+    const kernel = await loadWasmKernel()
+    if (preference === 'wasm' && kernel.source !== 'rust-wasm') {
+      this.kernelFallbackReason = 'wasm kernel unavailable; using typescript fallback'
+    } else if (preference === 'auto' && kernel.source !== 'rust-wasm') {
+      this.kernelFallbackReason = 'auto kernel resolved to typescript fallback'
+    }
+
+    this.wasmKernel = kernel
+    this.emitRuntimeReady()
+    this.render(false)
+  }
+
+  private async applyPreferences(preferences: Partial<RuntimePreferences>) {
+    const previousRenderer = this.preferences.rendererPreference
+    const previousKernel = this.preferences.kernelPreference
+
+    this.preferences = {
+      ...this.preferences,
+      ...preferences,
+    }
+
+    if (previousRenderer !== this.preferences.rendererPreference) {
+      this.mountRenderer()
+    }
+
+    if (previousKernel !== this.preferences.kernelPreference) {
+      await this.refreshKernel()
+      return
+    }
+
+    this.emitRuntimeReady()
+    this.render(false)
   }
 
   private pointerDown(screenPoint: Point) {
@@ -171,14 +239,17 @@ export class EngineController {
 
     if (node) {
       this.selectionIds = [node.id]
-      this.dragState = {
-        kind: 'node',
-        nodeId: node.id,
-        pointerOffset: {
-          x: worldPoint.x - node.position.x,
-          y: worldPoint.y - node.position.y,
-        },
-      }
+      this.dragState =
+        this.preferences.editability === 'editable'
+          ? {
+              kind: 'node',
+              nodeId: node.id,
+              pointerOffset: {
+                x: worldPoint.x - node.position.x,
+                y: worldPoint.y - node.position.y,
+              },
+            }
+          : undefined
       this.emitSelection()
       this.render(false)
       return
@@ -234,6 +305,8 @@ export class EngineController {
       type: 'ready',
       backend: this.backend,
       kernelSource: this.wasmKernel.source,
+      preferences: this.preferences,
+      fallbackReason: this.getFallbackReason(),
     })
   }
 
@@ -259,6 +332,8 @@ export class EngineController {
       nodeCount: this.graph.nodes.length,
       edgeCount: this.graph.edges.length,
       zoom: this.viewport.zoom,
+      preferences: this.preferences,
+      fallbackReason: this.getFallbackReason(),
     })
 
     if (!bounds) {
@@ -267,5 +342,11 @@ export class EngineController {
 
     this.wasmKernel.boundsWidth(bounds.minX, bounds.maxX)
     this.wasmKernel.boundsHeight(bounds.minY, bounds.maxY)
+  }
+
+  private getFallbackReason() {
+    return [this.rendererFallbackReason, this.kernelFallbackReason]
+      .filter(Boolean)
+      .join(' | ') || null
   }
 }

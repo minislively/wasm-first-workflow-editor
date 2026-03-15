@@ -1,6 +1,7 @@
 import { defineWorkflowEditor } from '@minislively/workflow-element'
 import type {
   GraphDocument,
+  RuntimePreferences,
   ThemeTokens,
   WorkflowEditorOptions,
 } from '@minislively/workflow-types'
@@ -15,9 +16,10 @@ import {
 type WorkflowEditorElementHandle = HTMLElement & {
   graph?: GraphDocument
   theme?: Partial<ThemeTokens>
+  preferences?: Partial<RuntimePreferences>
 }
 
-export type WorkflowEditorProps = Pick<WorkflowEditorOptions, 'graph' | 'theme'> & {
+export type WorkflowEditorProps = Pick<WorkflowEditorOptions, 'graph' | 'theme' | 'preferences'> & {
   className?: string
   style?: CSSProperties
 }
@@ -25,6 +27,7 @@ export type WorkflowEditorProps = Pick<WorkflowEditorOptions, 'graph' | 'theme'>
 export function WorkflowEditor({
   graph,
   theme,
+  preferences,
   className,
   style,
 }: WorkflowEditorProps) {
@@ -41,7 +44,8 @@ export function WorkflowEditor({
 
     elementRef.current.graph = graph
     elementRef.current.theme = theme
-  }, [graph, theme])
+    elementRef.current.preferences = preferences
+  }, [graph, theme, preferences])
 
   return createElement('workflow-editor', {
     ref: elementRef,

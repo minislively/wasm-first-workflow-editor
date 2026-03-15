@@ -21,6 +21,21 @@ const editor = await createWorkflowEditor({
     accent: '#14b8a6',
     nodeSelected: '#14b8a6',
   },
+  preferences: {
+    editability: 'editable',
+    rendererPreference: 'auto',
+    kernelPreference: 'auto',
+  },
+})
+```
+
+You can update runtime preferences after mount:
+
+```ts
+editor.setPreferences({
+  editability: 'read-only',
+  rendererPreference: 'canvas',
+  kernelPreference: 'ts-fallback',
 })
 ```
 
@@ -56,7 +71,7 @@ element.addEventListener('change', (event) => {
 - `ready`: tells the host which renderer/backend and kernel source are active
 - `selection`: lets the host react to current node selection without subscribing to the full scene loop
 - `change`: emits the current graph document when graph state changes
-- `stats`: emits runtime diagnostics such as node count, edge count, zoom, backend, and kernel source
+- `stats`: emits runtime diagnostics such as node count, edge count, zoom, backend, kernel source, runtime preferences, and fallback reason
 
 ## Non-React host example
 

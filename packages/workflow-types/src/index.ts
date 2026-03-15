@@ -69,6 +69,15 @@ export type ThemeTokens = {
 
 export type RendererBackend = 'webgl' | 'canvas2d'
 export type WasmRuntimeSource = 'rust-wasm' | 'typescript-fallback'
+export type Editability = 'editable' | 'read-only'
+export type RendererPreference = 'auto' | 'webgl' | 'canvas'
+export type KernelPreference = 'auto' | 'wasm' | 'ts-fallback'
+
+export type RuntimePreferences = {
+  editability: Editability
+  rendererPreference: RendererPreference
+  kernelPreference: KernelPreference
+}
 
 export type SceneSnapshot = {
   graph: GraphDocument
@@ -84,6 +93,7 @@ export type EngineInitCommand = {
   graph: GraphDocument
   size: CanvasSize
   theme?: Partial<ThemeTokens>
+  preferences?: Partial<RuntimePreferences>
 }
 
 export type EngineCommand =
@@ -96,11 +106,18 @@ export type EngineCommand =
   | { type: 'zoom.in' }
   | { type: 'zoom.out' }
   | { type: 'theme.set'; theme: Partial<ThemeTokens> }
+  | { type: 'preferences.set'; preferences: Partial<RuntimePreferences> }
   | { type: 'load'; graph: GraphDocument }
   | { type: 'dispose' }
 
 export type EngineEvent =
-  | { type: 'ready'; backend: RendererBackend; kernelSource: WasmRuntimeSource }
+  | {
+      type: 'ready'
+      backend: RendererBackend
+      kernelSource: WasmRuntimeSource
+      preferences: RuntimePreferences
+      fallbackReason: string | null
+    }
   | { type: 'selection'; selected: SelectionSummary[] }
   | { type: 'change'; graph: GraphDocument }
   | {
@@ -110,6 +127,8 @@ export type EngineEvent =
       nodeCount: number
       edgeCount: number
       zoom: number
+      preferences: RuntimePreferences
+      fallbackReason: string | null
     }
   | { type: 'error'; message: string }
 
@@ -117,4 +136,5 @@ export type WorkflowEditorOptions = {
   mount: HTMLElement
   graph: GraphDocument
   theme?: Partial<ThemeTokens>
+  preferences?: Partial<RuntimePreferences>
 }

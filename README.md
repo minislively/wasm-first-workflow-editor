@@ -52,10 +52,16 @@ Use this surface when you want to evaluate runtime behavior:
 
 - explicit `Product Demo / Performance Lab` mode split inside the demo surface
 - fixture selector for `basic / 100 / 500 / 1000`
-- diagnostics for backend, kernel source, node count, edge count, and zoom
+- diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
+- explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
 - benchmark-oriented reading of the same editor contract
 
 The lab is intentionally part of the public product surface rather than a hidden dev-only page.
+
+Default state model:
+
+- `Product Demo`: `fixture=basic`, `editability=editable`, `diagnosticsVisibility=hidden`
+- `Performance Lab`: `fixture=100`, `editability=editable`, `diagnosticsVisibility=full`
 
 ## Demo surfaces
 
