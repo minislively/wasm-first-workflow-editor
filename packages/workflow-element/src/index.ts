@@ -18,6 +18,7 @@ export class WorkflowEditorElement extends HTMLElement {
   graph: GraphDocument = createBasicDemoGraph()
   theme?: Partial<ThemeTokens>
   preferences?: Partial<RuntimePreferences>
+  shellMode: 'default' | 'stage-only' = 'default'
 
   private canvas?: HTMLCanvasElement
   private railList?: HTMLElement
@@ -72,9 +73,11 @@ export class WorkflowEditorElement extends HTMLElement {
   }
 
   private renderShell() {
+    const shellClass = this.shellMode === 'stage-only' ? 'shell stage-only' : 'shell'
+
     return `
       <style>${editorShellStyles}</style>
-      <div class="shell">
+      <div class="${shellClass}">
         <div class="topbar">
           <div class="brand">
             <div class="eyebrow">minislively / wasm-first</div>
@@ -314,6 +317,9 @@ export async function createWorkflowEditor(options: WorkflowEditorOptions) {
   defineWorkflowEditor()
   const element = document.createElement(elementTag) as WorkflowEditorElement
   element.graph = options.graph
+  if (options.shellMode) {
+    element.shellMode = options.shellMode
+  }
   if (options.theme) {
     element.theme = options.theme
   }

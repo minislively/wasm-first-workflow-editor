@@ -99,6 +99,15 @@ export const editorShellStyles = `
     min-height: 0;
   }
 
+  .shell.stage-only .body {
+    grid-template-columns: 1fr;
+  }
+
+  .shell.stage-only .rail,
+  .shell.stage-only .inspector {
+    display: none;
+  }
+
   .rail,
   .inspector {
     padding: 1.2rem;
@@ -143,6 +152,10 @@ export const editorShellStyles = `
     position: relative;
     min-height: 0;
     overflow: hidden;
+  }
+
+  .shell.stage-only .stage {
+    min-height: 760px;
   }
 
   canvas {

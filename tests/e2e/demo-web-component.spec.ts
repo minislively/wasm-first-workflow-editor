@@ -20,16 +20,15 @@ test.describe('product demo web component surface', () => {
   test('renders the builder-first shell for the starter flow', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText('Workflow-builder testing playground')).toBeVisible()
     await expect(page.getByText('Product Demo Playground')).toBeVisible()
-    await expect(page.getByText('Config Panel', { exact: true })).toBeVisible()
-    await expect(page.getByText('Playground Controls', { exact: true })).toBeVisible()
+    await expect(page.getByText('캔버스에서 바로 에이전트 빌더를 체험합니다.')).toBeVisible()
+    await expect(page.getByText('Node Inspector', { exact: true })).toBeVisible()
+    await expect(page.getByText('Starter template')).toBeVisible()
     await expect(
-      page.getByText('Use this surface to modify a starter workflow'),
+      page.getByText('노드가 먼저 보여야 하는 빌더 화면'),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
     await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
-    await expect(page.getByText('Lab Controls', { exact: true })).toHaveCount(0)
     await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)
     await expect(page.locator('workflow-editor')).toHaveCount(1)
   })
@@ -79,9 +78,6 @@ test.describe('product demo web component surface', () => {
     })
 
     await expect(page.locator('[data-role="config-title"]')).toContainText(
-      'Webhook intake',
-    )
-    await expect(page.locator('[data-role="selection-list"]')).toContainText(
       'Webhook intake',
     )
   })

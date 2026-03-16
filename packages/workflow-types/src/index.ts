@@ -137,4 +137,5 @@ export type WorkflowEditorOptions = {
   graph: GraphDocument
   theme?: Partial<ThemeTokens>
   preferences?: Partial<RuntimePreferences>
+  shellMode?: 'default' | 'stage-only'
 }

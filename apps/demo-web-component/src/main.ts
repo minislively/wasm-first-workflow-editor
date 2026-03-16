@@ -41,90 +41,59 @@ let activeNodeId: ProductDemoBuilderNodeId = 'trigger'
 
 app.innerHTML = `
   <main class="page">
-    <section class="mission-bar">
-      <div>
-        <p class="eyebrow">builder-first public surface</p>
-        <h1>Product Demo Playground</h1>
-        <p class="mission-copy">
-          Open the example workflow, add supported nodes, and inspect how the
-          runtime behaves while you edit. This page should feel directly usable,
-          not like a demo shell.
-        </p>
-      </div>
-      <div class="mission-pills">
-        <div class="mission-pill">Web Component primary</div>
-        <div class="mission-pill">Stage stays engine-owned</div>
-        <div class="mission-pill">Basic is the editable playground baseline</div>
-        <div class="mission-pill">Heavy-tier truth stays in Performance Lab</div>
-      </div>
+    <section class="mission-strip">
+      <p class="eyebrow">Product Demo</p>
+      <h1>Product Demo Playground</h1>
+      <p class="mission-copy">
+        캔버스에서 바로 에이전트 빌더를 체험합니다.
+      </p>
     </section>
     <section class="surface-shell">
-      <div class="surface-header">
-        <div>
-          <div class="panel-label">Product Demo</div>
-          <strong class="surface-title">Workflow-builder testing playground</strong>
-        </div>
-        <div class="surface-summary">
-          Use this surface to modify a starter workflow and understand what the
-          current runtime is doing while you work. Broader heavy-tier and forced
-          runtime comparisons still belong in Performance Lab.
-        </div>
-      </div>
       <div class="surface-layout">
-        <aside class="builder-sidebar">
-          <section class="panel-card playground-card">
-            <div class="panel-label">Playground Controls</div>
-            <strong>Try the workflow immediately.</strong>
-            <div class="playground-checklist">
-              <p>1. Switch the starter flow.</p>
-              <p>2. Add or remove supported nodes.</p>
-              <p>3. Click a stage node to inspect and retune it.</p>
+        <section class="canvas-column">
+          <section class="editor-shell">
+            <div class="builder-banner">
+              <div class="builder-banner-copy">
+                <div class="panel-label">Live Canvas</div>
+                <strong>노드가 먼저 보여야 하는 빌더 화면</strong>
+              </div>
+              <div class="builder-banner-meta">
+                <p>Drag, pan, zoom, selection을 stage에서 바로 확인합니다.</p>
+              </div>
+              <div class="builder-banner-controls">
+                <label class="template-picker">
+                  <span>Starter template</span>
+                  <select data-builder-control="template">
+                    ${productDemoTemplates
+                      .map(
+                        (template) =>
+                          `<option value="${template.key}">${template.label}</option>`,
+                      )
+                      .join('')}
+                  </select>
+                </label>
+                <div class="optional-node-controls" data-role="optional-node-controls"></div>
+              </div>
             </div>
-            <div class="playground-stack">
-              <label>
-                <span>Starter template</span>
-                <select data-builder-control="template">
-                  ${productDemoTemplates
-                    .map(
-                      (template) =>
-                        `<option value="${template.key}">${template.label}</option>`,
-                    )
-                    .join('')}
-                </select>
-              </label>
-              <div class="optional-node-controls" data-role="optional-node-controls"></div>
-            </div>
-            <div class="template-summary" data-role="template-summary"></div>
-            <div class="panel-label section-break">Flow Map</div>
-            <strong>Open a step, then test it on the stage.</strong>
-            <p class="panel-copy">
-              Use the list for fast navigation, then click the stage to confirm
-              the same node under real interaction.
-            </p>
-            <div class="flow-map" data-role="flow-map"></div>
+            <div id="mount"></div>
           </section>
-        </aside>
-        <section class="editor-shell">
-          <div class="builder-banner">
-            <div>
-              <div class="panel-label">Live Stage</div>
-              <strong>Stage interaction stays engine-owned.</strong>
+          <section class="control-strip">
+            <div class="template-summary" data-role="template-summary"></div>
+            <div class="flow-map-strip">
+              <div class="flow-map-label">
+                <div class="panel-label">Flow map</div>
+                <span>필요할 때만 step 이동</span>
+              </div>
+              <div class="flow-map" data-role="flow-map"></div>
             </div>
-            <p>
-              Drag, pan, zoom, and select here. Keep the shell focused on
-              workflow editing and contextual runtime understanding, not on
-              presentation copy.
-            </p>
-          </div>
-          <div id="mount"></div>
+          </section>
         </section>
         <aside class="config-sidebar">
           <section class="panel-card config-card">
-            <div class="panel-label">Config Panel</div>
+            <div class="panel-label">Node Inspector</div>
             <strong data-role="config-title">Open a builder step</strong>
             <p class="panel-copy" data-role="config-copy">
-              The stage and flow map both feed this host-owned panel so users
-              can tweak the active node without taking over rendering.
+              캔버스에서 선택한 노드를 여기서 조정합니다.
             </p>
             <div class="config-form" data-role="config-form"></div>
             <div class="runtime-card">
@@ -149,6 +118,7 @@ const mount = document.querySelector<HTMLElement>('#mount')!
 const editor = await createWorkflowEditor({
   mount,
   graph: currentGraph,
+  shellMode: 'stage-only',
   theme: {
     accent: '#14b8a6',
     nodeSelected: '#14b8a6',
