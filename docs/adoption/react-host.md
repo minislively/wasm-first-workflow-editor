@@ -1,6 +1,7 @@
 # React Host Guidance
 
 `@minislively/workflow-react` exists for React host convenience, not as the primary architecture surface or the representative product story.
+Treat it as technical support for teams whose surrounding shell already runs in React, after the Product Demo and `Web Component` contract have established the primary product path.
 
 ## Positioning
 
@@ -9,6 +10,7 @@
 - use this when your surrounding application shell already lives in React and you want to preserve the same engine boundary
 
 The React wrapper should stay thin and should not become the owner of graph-stage behavior.
+It should also not become the proof surface for runtime maturity; that role belongs to `apps/performance-lab`.
 
 ## Recommended usage
 
@@ -52,4 +54,5 @@ If the React layer starts owning graph-stage interaction state, the product drif
 The recommended sequence is:
 
 1. validate the product contract with the `Web Component` path first
-2. adopt the React wrapper when React is the host-shell requirement, not the reason the editor exists
+2. use `Performance Lab` to validate heavier fixtures, runtime selection, and fallback reporting
+3. adopt the React wrapper when React is the host-shell requirement, not the reason the editor exists
