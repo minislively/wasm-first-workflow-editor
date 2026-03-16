@@ -4,9 +4,16 @@ import {
   createPerformanceLabState,
   getFixtureGraph,
   getFixtureInteractionContract,
+  getProductDemoBuilderNode,
+  getProductDemoBuilderNodes,
   getProductDemoGraph,
+  getProductDemoOptionalNodeOptions,
   isDegradedFixture,
   resolvePerformanceLabEditability,
+  setProductDemoNodePreset,
+  setProductDemoNodeStatus,
+  setProductDemoOptionalNodeEnabled,
+  setProductDemoTemplate,
 } from './index'
 
 describe('workflow-demo-support fixtures', () => {
@@ -55,6 +62,65 @@ describe('workflow-demo-support fixtures', () => {
     expect(graph.metadata?.templateKey).toBe('sales-escalation')
     expect(graph.nodes.find((node) => node.id === 'publish')?.title).toBe('Send follow-up')
     expect(graph.nodes).toHaveLength(5)
+  })
+
+  it('lists the builder seam for the default starter flow', () => {
+    const graph = getProductDemoGraph()
+
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).toEqual([
+      'trigger',
+      'classify',
+      'research',
+      'review',
+      'publish',
+    ])
+  })
+
+  it('switches the starter flow defaults when the template changes', () => {
+    const graph = setProductDemoTemplate(getProductDemoGraph(), 'ops-incident')
+
+    expect(graph.metadata?.templateKey).toBe('ops-incident')
+    expect(getProductDemoBuilderNode(graph, 'trigger')?.currentTitle).toBe('Alert monitor')
+  })
+
+  it('updates a builder node preset through the shared helper', () => {
+    const graph = setProductDemoNodePreset(
+      getProductDemoGraph(),
+      'classify',
+      'classify-severity',
+    )
+
+    expect(getProductDemoBuilderNode(graph, 'classify')?.currentTitle).toBe('Severity gate')
+  })
+
+  it('updates a builder node status through the shared helper', () => {
+    const graph = setProductDemoNodeStatus(getProductDemoGraph(), 'publish', 'running')
+
+    expect(getProductDemoBuilderNode(graph, 'publish')?.currentStatus).toBe('running')
+  })
+
+  it('adds the supported follow-up action node when enabled', () => {
+    const graph = setProductDemoOptionalNodeEnabled(getProductDemoGraph(), 'action', true)
+
+    expect(getProductDemoOptionalNodeOptions(graph)).toContainEqual(
+      expect.objectContaining({
+        family: 'action',
+        enabled: true,
+      }),
+    )
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).toContain('action')
+  })
+
+  it('removes the supported approval gate when disabled', () => {
+    const graph = setProductDemoOptionalNodeEnabled(getProductDemoGraph(), 'review', false)
+
+    expect(getProductDemoOptionalNodeOptions(graph)).toContainEqual(
+      expect.objectContaining({
+        family: 'review',
+        enabled: false,
+      }),
+    )
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).not.toContain('review')
   })
 
   it('requires an explicit override to enable editing on degraded tiers', () => {

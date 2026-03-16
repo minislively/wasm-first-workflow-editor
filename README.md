@@ -35,11 +35,11 @@ Most node editors let shell convenience leak into the graph hot path. This repos
 
 Use `apps/demo-web-component` when you want to understand the editor as a product:
 
-- small default graph
-- direct editing feel
-- template-first example swaps for guided API-style flows
-- lightweight runtime feedback
-- clear `Web Component`-first story
+- constrained builder shell with a real stage plus side-panel config flow
+- template-first starter flow inside the builder surface
+- constrained add/remove controls for the supported approval and follow-up node families
+- lightweight runtime feedback without lab-style diagnostics overload
+- clear `Web Component`-first story with `React` kept secondary
 
 Run it with:
 
@@ -75,7 +75,7 @@ pnpm demo:performance-lab
 
 Default state model:
 
-- `Product Demo`: fixed `basic` fixture, editable interactions, lightweight runtime snapshot
+- `Product Demo`: builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
 - `Performance Lab`: `fixture=100`, `editability=editable`, full diagnostics
 
 Evaluation guidance:
@@ -97,20 +97,20 @@ Recommended evaluation path:
 
 The public surfaces are intentionally split:
 
-- `Product Demo`: trustworthy first-run surface, fixed to the `basic` graph and lightweight runtime feedback
+- `Product Demo`: trustworthy builder-first shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
 - `Performance Lab`: diagnostics-forward surface for fixture comparison and runtime preference evaluation
 
 Current trustworthy baseline:
 
-- `basic`: product-oriented editable baseline
+- `basic`: product-oriented editable builder baseline
 - `100`: lab-oriented editable baseline for interaction smoke and diagnostics comparison
 - `500 / 1000`: public evaluation fixtures that default to degraded viewer mode unless a host explicitly opts into experimental editing
 
 Near-term usage guidance:
 
-- treat `Product Demo` as the place to assess the editor feel
+- treat `Product Demo` as the place to assess the builder shell, side-panel flow, and constrained host-owned mutations
 - treat `Performance Lab` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
-- prefer template-first examples and host-controlled API wiring over broad freeform editing promises when presenting the project publicly
+- prefer template-first starter flows, host-controlled API wiring, and constrained add/remove seams over broad freeform editing promises when presenting the project publicly
 
 For the full surface contract, see [Public Surface Reliability](./docs/product/reliability.md).
 

@@ -96,6 +96,10 @@ export class EngineController {
         break
       case 'load':
         this.graph = command.graph
+        this.selectionIds = this.selectionIds.filter((selectionId) =>
+          this.graph.nodes.some((node) => node.id === selectionId),
+        )
+        this.emitSelection()
         this.render(true)
         break
       case 'resize':

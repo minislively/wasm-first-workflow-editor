@@ -13,10 +13,11 @@ The reliability rule is simple:
 
 `apps/demo-web-component` is the first-run product surface:
 
-- fixed `basic` fixture
-- editable baseline
-- lightweight runtime snapshot
-- no lab controls, fixture toggles, or diagnostics-heavy evaluation panels
+- constrained builder shell around the `basic` graph
+- editing-capable stage baseline with side-panel configuration
+- template-first starter flow inside the builder surface
+- constrained add/remove of the supported approval and follow-up node families
+- lightweight runtime snapshot instead of diagnostics-heavy evaluation panels
 
 This keeps the visible contract narrow enough to stay trustworthy.
 
@@ -35,11 +36,12 @@ This surface is where heavier fixture behavior should be interpreted.
 
 The current codebase supports these public expectations:
 
-- `basic` is the product-oriented editable baseline
+- `basic` is the product-oriented editable builder baseline
 - `100` is the default lab baseline for editing and diagnostics comparison
 - `500 / 1000` default to read-only degraded mode with explicit tier-policy messaging
+- Product Demo exposes stage interaction, host-owned config flow, and constrained add/remove controls without taking over the graph hot path
 - diagnostics expose backend, kernel source, counts, zoom, and fallback state through public events
-- browser tests cover the visible split between Product Demo and Performance Lab, plus runtime diagnostics honesty
+- browser tests cover the builder shell promises plus the visible split between Product Demo and Performance Lab
 
 ## Heavy-tier reliability contract
 
@@ -56,7 +58,7 @@ Public docs should therefore describe `500 / 1000` as degraded evaluation fixtur
 
 Reliability depends on keeping the architecture boundary intact:
 
-- host owns routing, persistence, shell layout, inspector UI, and API-driven flows
+- host owns routing, persistence, shell layout, side-panel config UI, constrained builder actions, and API-driven flows
 - engine owns pointer handling, drag loops, selection mechanics, hit testing, pan/zoom, and graph-stage rendering
 
 The `Web Component` contract remains the primary public integration path. React stays a secondary host wrapper, not the graph hot path owner.
@@ -65,8 +67,9 @@ The `Web Component` contract remains the primary public integration path. React 
 
 Near-term public guidance should stay template-first:
 
-- start from a runnable example flow
-- let adopters swap API nodes, settings, and host-owned shell wiring
+- start from a runnable builder-oriented starter flow
+- let adopters swap supported node presets, settings, and host-owned shell wiring
+- keep add/remove behavior limited to the approved node families that snap into the builder seam
 - avoid overselling broad freeform editing where reliability still depends on fixture size and runtime conditions
 
 This keeps the public promise aligned with the current trustworthy baseline.

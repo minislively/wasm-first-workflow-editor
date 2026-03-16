@@ -3,7 +3,9 @@ import type {
   Editability,
   GraphDocument,
   KernelPreference,
+  Point,
   RendererPreference,
+  Size,
   WorkflowNode,
 } from '@minislively/workflow-types'
 
@@ -35,29 +37,389 @@ export type ProductDemoTemplateOption = {
   summary: string
 }
 
-type ProductDemoNodeOverrides = Record<string, Partial<WorkflowNode>>
+export type ProductDemoBuilderNodeId =
+  | 'trigger'
+  | 'classify'
+  | 'research'
+  | 'review'
+  | 'publish'
+  | 'action'
 
-type ProductDemoTemplateOverrides = {
-  name: string
-  summary: string
-  nodes: ProductDemoNodeOverrides
+export type ProductDemoOptionalNodeFamily = 'review' | 'action'
+
+export type ProductDemoNodePreset = {
+  key: string
+  label: string
+  title: string
+  subtitle: string
+  status?: WorkflowNode['status']
+  color?: string
 }
 
-const PRODUCT_DEMO_TEMPLATE_OPTIONS: readonly ProductDemoTemplateOption[] = [
-  {
+export type ProductDemoBuilderNodeSummary = {
+  id: ProductDemoBuilderNodeId
+  label: string
+  family: 'core' | 'optional'
+  slotLabel: string
+  panelTitle: string
+  panelCopy: string
+  presetLabel: string
+  currentPresetKey: string
+  currentPresetLabel: string
+  currentTitle: string
+  currentSubtitle: string
+  currentStatus: WorkflowNode['status']
+  presetOptions: readonly ProductDemoNodePreset[]
+}
+
+export type ProductDemoOptionalNodeOption = {
+  family: ProductDemoOptionalNodeFamily
+  nodeId: ProductDemoBuilderNodeId
+  label: string
+  summary: string
+  enabled: boolean
+}
+
+type ProductDemoBuilderState = {
+  templateKey: ProductDemoTemplateKey
+  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>
+  presetKeys: Partial<Record<ProductDemoBuilderNodeId, string>>
+  statusOverrides: Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>>
+}
+
+type ProductDemoTemplateDefinition = ProductDemoTemplateOption & {
+  name: string
+  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>
+  presetKeys: Record<ProductDemoBuilderNodeId, string>
+}
+
+type ProductDemoNodeDefinition = {
+  id: ProductDemoBuilderNodeId
+  label: string
+  slotLabel: string
+  family: 'core' | 'optional'
+  panelTitle: string
+  panelCopy: string
+  presetLabel: string
+  defaultColor: string
+  defaultStatus: WorkflowNode['status']
+  defaultPosition: Point
+  defaultSize: Size
+  presetOptions: readonly ProductDemoNodePreset[]
+}
+
+const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
+  ProductDemoTemplateKey,
+  ProductDemoTemplateDefinition
+> = {
+  'support-triage': {
     key: 'support-triage',
     label: 'Support triage',
-    summary: 'Webhook intake, issue classification, knowledge lookup, then an approval-backed reply.',
+    summary:
+      'Webhook intake, issue classification, knowledge lookup, then an approval-backed reply.',
+    name: 'Support triage builder',
+    optionalNodes: {
+      review: true,
+      action: false,
+    },
+    presetKeys: {
+      trigger: 'trigger-webhook',
+      classify: 'classify-intent',
+      research: 'research-knowledge',
+      review: 'review-human',
+      publish: 'publish-reply',
+      action: 'action-slack',
+    },
   },
-  {
+  'sales-escalation': {
     key: 'sales-escalation',
     label: 'Sales escalation',
-    summary: 'Lead qualification, CRM enrichment, rep approval, then a follow-up handoff.',
+    summary:
+      'Lead qualification, CRM enrichment, rep approval, then a follow-up handoff.',
+    name: 'Sales escalation builder',
+    optionalNodes: {
+      review: true,
+      action: false,
+    },
+    presetKeys: {
+      trigger: 'trigger-crm',
+      classify: 'classify-qualify',
+      research: 'research-enrich',
+      review: 'review-rep',
+      publish: 'publish-follow-up',
+      action: 'action-crm-note',
+    },
   },
-  {
+  'ops-incident': {
     key: 'ops-incident',
     label: 'Ops incident',
-    summary: 'Alert intake, severity routing, investigation, mitigation approval, and status publish.',
+    summary:
+      'Alert intake, severity routing, investigation, mitigation approval, and status publish.',
+    name: 'Ops incident builder',
+    optionalNodes: {
+      review: true,
+      action: false,
+    },
+    presetKeys: {
+      trigger: 'trigger-alert',
+      classify: 'classify-severity',
+      research: 'research-logs',
+      review: 'review-mitigation',
+      publish: 'publish-status',
+      action: 'action-pager',
+    },
+  },
+}
+
+const PRODUCT_DEMO_NODE_ORDER: readonly ProductDemoBuilderNodeId[] = [
+  'trigger',
+  'classify',
+  'research',
+  'review',
+  'publish',
+  'action',
+]
+
+const PRODUCT_DEMO_NODE_DEFINITIONS: Record<
+  ProductDemoBuilderNodeId,
+  ProductDemoNodeDefinition
+> = {
+  trigger: {
+    id: 'trigger',
+    label: 'Trigger',
+    slotLabel: 'Entry',
+    family: 'core',
+    panelTitle: 'Trigger configuration',
+    panelCopy:
+      'Choose the trusted inbound event for the starter flow. The host swaps known trigger presets without taking over stage rendering.',
+    presetLabel: 'Entry mode',
+    defaultColor: '#22c55e',
+    defaultStatus: 'ready',
+    defaultPosition: { x: 24, y: 96 },
+    defaultSize: { width: 180, height: 88 },
+    presetOptions: [
+      {
+        key: 'trigger-webhook',
+        label: 'Webhook intake',
+        title: 'Webhook intake',
+        subtitle: 'Listen for inbound support events',
+      },
+      {
+        key: 'trigger-crm',
+        label: 'CRM handoff',
+        title: 'CRM handoff',
+        subtitle: 'Start when a routed account needs follow-up',
+        color: '#38bdf8',
+      },
+      {
+        key: 'trigger-alert',
+        label: 'Alert monitor',
+        title: 'Alert monitor',
+        subtitle: 'Open the flow when an incident alert fires',
+        color: '#ef4444',
+      },
+    ],
+  },
+  classify: {
+    id: 'classify',
+    label: 'Router',
+    slotLabel: 'Decision',
+    family: 'core',
+    panelTitle: 'Routing configuration',
+    panelCopy:
+      'Condition and routing behavior stay constrained to a few trustworthy presets so the builder shell does not imply unrestricted graph logic authoring.',
+    presetLabel: 'Routing mode',
+    defaultColor: '#38bdf8',
+    defaultStatus: 'running',
+    defaultPosition: { x: 288, y: 74 },
+    defaultSize: { width: 200, height: 92 },
+    presetOptions: [
+      {
+        key: 'classify-intent',
+        label: 'Intent router',
+        title: 'Intent router',
+        subtitle: 'Route by request type and confidence',
+      },
+      {
+        key: 'classify-qualify',
+        label: 'Lead qualifier',
+        title: 'Lead qualifier',
+        subtitle: 'Score account fit before enrichment',
+        color: '#f97316',
+      },
+      {
+        key: 'classify-severity',
+        label: 'Severity gate',
+        title: 'Severity gate',
+        subtitle: 'Escalate incidents by impact and urgency',
+        color: '#fb7185',
+      },
+    ],
+  },
+  research: {
+    id: 'research',
+    label: 'Research',
+    slotLabel: 'Context',
+    family: 'core',
+    panelTitle: 'Context step configuration',
+    panelCopy:
+      'API-backed lookup stays template-first. You can swap the supported research preset while the same engine-owned stage stays interactive.',
+    presetLabel: 'Context source',
+    defaultColor: '#eab308',
+    defaultStatus: 'ready',
+    defaultPosition: { x: 566, y: 48 },
+    defaultSize: { width: 210, height: 94 },
+    presetOptions: [
+      {
+        key: 'research-knowledge',
+        label: 'Knowledge lookup',
+        title: 'Knowledge lookup',
+        subtitle: 'Fetch support context from docs and guides',
+      },
+      {
+        key: 'research-enrich',
+        label: 'CRM enrich',
+        title: 'CRM enrich',
+        subtitle: 'Pull firmographic and pipeline context',
+        color: '#38bdf8',
+      },
+      {
+        key: 'research-logs',
+        label: 'Incident context',
+        title: 'Incident context',
+        subtitle: 'Collect logs and system health before action',
+        status: 'running',
+        color: '#0ea5e9',
+      },
+    ],
+  },
+  review: {
+    id: 'review',
+    label: 'Approval',
+    slotLabel: 'Guardrail',
+    family: 'optional',
+    panelTitle: 'Approval step configuration',
+    panelCopy:
+      'This optional guardrail can be removed when the starter flow should stay linear, or re-added when a human gate is part of the public builder seam.',
+    presetLabel: 'Approval mode',
+    defaultColor: '#f97316',
+    defaultStatus: 'idle',
+    defaultPosition: { x: 566, y: 208 },
+    defaultSize: { width: 210, height: 94 },
+    presetOptions: [
+      {
+        key: 'review-human',
+        label: 'Human approval',
+        title: 'Human approval',
+        subtitle: 'Escalate uncertain replies to a reviewer',
+      },
+      {
+        key: 'review-rep',
+        label: 'Rep approval',
+        title: 'Rep approval',
+        subtitle: 'Confirm pricing and next-step path',
+        status: 'running',
+        color: '#eab308',
+      },
+      {
+        key: 'review-mitigation',
+        label: 'Mitigation approval',
+        title: 'Mitigation approval',
+        subtitle: 'Verify rollback or patch choice before publish',
+        color: '#f97316',
+      },
+    ],
+  },
+  publish: {
+    id: 'publish',
+    label: 'Publish',
+    slotLabel: 'Output',
+    family: 'core',
+    panelTitle: 'Publish step configuration',
+    panelCopy:
+      'The output step is kept configurable through a small set of action presets so the page reads like a builder without promising arbitrary node authoring.',
+    presetLabel: 'Publish action',
+    defaultColor: '#a855f7',
+    defaultStatus: 'idle',
+    defaultPosition: { x: 862, y: 126 },
+    defaultSize: { width: 184, height: 90 },
+    presetOptions: [
+      {
+        key: 'publish-reply',
+        label: 'Reply to customer',
+        title: 'Reply to customer',
+        subtitle: 'Ship the approved response',
+      },
+      {
+        key: 'publish-follow-up',
+        label: 'Send follow-up',
+        title: 'Send follow-up',
+        subtitle: 'Publish the approved outreach',
+        color: '#8b5cf6',
+      },
+      {
+        key: 'publish-status',
+        label: 'Post status update',
+        title: 'Post status update',
+        subtitle: 'Publish to the incident room',
+        color: '#22c55e',
+      },
+    ],
+  },
+  action: {
+    id: 'action',
+    label: 'Follow-up',
+    slotLabel: 'Optional action',
+    family: 'optional',
+    panelTitle: 'Follow-up action configuration',
+    panelCopy:
+      'This constrained add/remove lane demonstrates shell-owned expansion of the starter flow. Added nodes snap into the supported builder seam instead of implying free placement.',
+    presetLabel: 'Follow-up action',
+    defaultColor: '#14b8a6',
+    defaultStatus: 'idle',
+    defaultPosition: { x: 1158, y: 126 },
+    defaultSize: { width: 192, height: 90 },
+    presetOptions: [
+      {
+        key: 'action-slack',
+        label: 'Slack summary',
+        title: 'Slack summary',
+        subtitle: 'Share the result to the builder team room',
+        color: '#14b8a6',
+      },
+      {
+        key: 'action-crm-note',
+        label: 'CRM note',
+        title: 'Write CRM note',
+        subtitle: 'Attach the final handoff outcome to the account',
+        color: '#0ea5e9',
+      },
+      {
+        key: 'action-pager',
+        label: 'Pager escalation',
+        title: 'Pager escalation',
+        subtitle: 'Notify the on-call engineer about the update',
+        color: '#fb7185',
+      },
+    ],
+  },
+}
+
+const PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS: readonly Omit<
+  ProductDemoOptionalNodeOption,
+  'enabled'
+>[] = [
+  {
+    family: 'review',
+    nodeId: 'review',
+    label: 'Approval gate',
+    summary: 'Add or remove the supported human-review branch in a snapped lane.',
+  },
+  {
+    family: 'action',
+    nodeId: 'action',
+    label: 'Follow-up action',
+    summary: 'Add or remove the supported post-publish action lane.',
   },
 ] as const
 
@@ -118,33 +480,138 @@ export function getFixtureGraph(fixture: FixtureKey): GraphDocument {
 }
 
 export function getProductDemoTemplateOptions(): readonly ProductDemoTemplateOption[] {
-  return PRODUCT_DEMO_TEMPLATE_OPTIONS
+  return Object.values(PRODUCT_DEMO_TEMPLATE_DEFINITIONS).map(
+    ({ key, label, summary }) => ({
+      key,
+      label,
+      summary,
+    }),
+  )
 }
 
 export function getProductDemoGraph(
   template: ProductDemoTemplateKey = 'support-triage',
 ): GraphDocument {
-  const base = createBasicDemoGraph()
-  const overrides = getTemplateOverrides(template)
+  return buildProductDemoGraph(createProductDemoBuilderState(template))
+}
+
+export function getProductDemoBuilderNodes(
+  graph: GraphDocument,
+): ProductDemoBuilderNodeSummary[] {
+  const state = readProductDemoBuilderState(graph)
+  const activeNodes = new Set(buildProductDemoNodeOrder(state.optionalNodes))
+
+  return PRODUCT_DEMO_NODE_ORDER.filter((nodeId) => activeNodes.has(nodeId)).map((nodeId) => {
+    const definition = PRODUCT_DEMO_NODE_DEFINITIONS[nodeId]
+    const preset = getPresetByKey(nodeId, state.presetKeys[nodeId])
+    const status = state.statusOverrides[nodeId] ?? preset.status ?? definition.defaultStatus
+
+    return {
+      id: nodeId,
+      label: definition.label,
+      family: definition.family,
+      slotLabel: definition.slotLabel,
+      panelTitle: definition.panelTitle,
+      panelCopy: definition.panelCopy,
+      presetLabel: definition.presetLabel,
+      currentPresetKey: preset.key,
+      currentPresetLabel: preset.label,
+      currentTitle: preset.title,
+      currentSubtitle: preset.subtitle,
+      currentStatus: status,
+      presetOptions: definition.presetOptions,
+    }
+  })
+}
+
+export function getProductDemoBuilderNode(
+  graph: GraphDocument,
+  nodeId: ProductDemoBuilderNodeId,
+): ProductDemoBuilderNodeSummary | undefined {
+  return getProductDemoBuilderNodes(graph).find((node) => node.id === nodeId)
+}
+
+export function getProductDemoOptionalNodeOptions(
+  graph: GraphDocument,
+): ProductDemoOptionalNodeOption[] {
+  const state = readProductDemoBuilderState(graph)
+
+  return PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS.map((option) => ({
+    ...option,
+    enabled: state.optionalNodes[option.family],
+  }))
+}
+
+export function isProductDemoOptionalNodeEnabled(
+  graph: GraphDocument,
+  family: ProductDemoOptionalNodeFamily,
+): boolean {
+  return readProductDemoBuilderState(graph).optionalNodes[family]
+}
+
+export function setProductDemoTemplate(
+  graph: GraphDocument,
+  template: ProductDemoTemplateKey,
+): GraphDocument {
+  const state = createProductDemoBuilderState(template)
+  return buildProductDemoGraph(state, graph)
+}
+
+export function setProductDemoNodePreset(
+  graph: GraphDocument,
+  nodeId: ProductDemoBuilderNodeId,
+  presetKey: string,
+): GraphDocument {
+  const state = readProductDemoBuilderState(graph)
+
+  if (!hasActiveNode(state.optionalNodes, nodeId)) {
+    return graph
+  }
+
+  state.presetKeys[nodeId] = getPresetByKey(nodeId, presetKey).key
+  return buildProductDemoGraph(state, graph)
+}
+
+export function setProductDemoNodeStatus(
+  graph: GraphDocument,
+  nodeId: ProductDemoBuilderNodeId,
+  status: WorkflowNode['status'],
+): GraphDocument {
+  const state = readProductDemoBuilderState(graph)
+
+  if (!hasActiveNode(state.optionalNodes, nodeId)) {
+    return graph
+  }
+
+  state.statusOverrides[nodeId] = status
+  return buildProductDemoGraph(state, graph)
+}
+
+export function setProductDemoOptionalNodeEnabled(
+  graph: GraphDocument,
+  family: ProductDemoOptionalNodeFamily,
+  enabled: boolean,
+): GraphDocument {
+  const state = readProductDemoBuilderState(graph)
+
+  if (state.optionalNodes[family] === enabled) {
+    return graph
+  }
+
+  state.optionalNodes[family] = enabled
+  return buildProductDemoGraph(state, graph)
+}
+
+export function getProductDemoTemplateSummary(
+  graph: GraphDocument,
+): ProductDemoTemplateOption {
+  const state = readProductDemoBuilderState(graph)
+  const definition = PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey]
 
   return {
-    ...base,
-    metadata: {
-      ...base.metadata,
-      name: overrides.name,
-      templateKey: template,
-      templateSummary: overrides.summary,
-    },
-    nodes: base.nodes.map((node) => {
-      const next = overrides.nodes[node.id]
-
-      return next
-        ? {
-            ...node,
-            ...next,
-          }
-        : node
-    }),
+    key: definition.key,
+    label: definition.label,
+    summary: definition.summary,
   }
 }
 
@@ -211,104 +678,219 @@ function createBenchmarkFixture(count: number): GraphDocument {
   }
 }
 
-function getTemplateOverrides(
+function createProductDemoBuilderState(
   template: ProductDemoTemplateKey,
-): ProductDemoTemplateOverrides {
-  switch (template) {
-    case 'support-triage':
-      return {
-        name: 'Support triage demo',
-        summary:
-          'Webhook intake to classification, knowledge lookup, and approval-backed response.',
-        nodes: {
-          trigger: {
-            title: 'Webhook intake',
-            subtitle: 'Support event enters the flow',
-          },
-          classify: {
-            title: 'Classify issue',
-            subtitle: 'Route by product area and severity',
-            status: 'running' as const,
-          },
-          research: {
-            title: 'Knowledge lookup',
-            subtitle: 'Fetch answer context from docs',
-          },
-          review: {
-            title: 'Agent review',
-            subtitle: 'Escalate uncertain replies to a human',
-          },
-          publish: {
-            title: 'Reply to customer',
-            subtitle: 'Ship the approved response',
-          },
-        },
-      }
-    case 'sales-escalation':
-      return {
-        name: 'Sales escalation demo',
-        summary:
-          'Qualify the lead, enrich the account, hand off to a rep, and publish a follow-up.',
-        nodes: {
-          trigger: {
-            title: 'Lead captured',
-            subtitle: 'Inbound request or form submit',
-          },
-          classify: {
-            title: 'Segment account',
-            subtitle: 'Route by tier and geography',
-            color: '#f97316',
-          },
-          research: {
-            title: 'CRM enrich',
-            subtitle: 'Pull firmographic and pipeline context',
-            color: '#38bdf8',
-          },
-          review: {
-            title: 'Rep approval',
-            subtitle: 'Confirm pricing and next-step path',
-            status: 'running' as const,
-            color: '#eab308',
-          },
-          publish: {
-            title: 'Send follow-up',
-            subtitle: 'Publish the approved outreach',
-          },
-        },
-      }
-    case 'ops-incident':
-      return {
-        name: 'Ops incident demo',
-        summary:
-          'Alert-triggered incident handling with diagnosis, mitigation approval, and status publishing.',
-        nodes: {
-          trigger: {
-            title: 'Alert received',
-            subtitle: 'Open the incident workflow',
-            color: '#ef4444',
-          },
-          classify: {
-            title: 'Severity route',
-            subtitle: 'Decide who gets paged now',
-            color: '#f97316',
-          },
-          research: {
-            title: 'Run investigation',
-            subtitle: 'Collect logs and system health',
-            status: 'running' as const,
-            color: '#38bdf8',
-          },
-          review: {
-            title: 'Mitigation approval',
-            subtitle: 'Verify rollback or patch choice',
-            color: '#eab308',
-          },
-          publish: {
-            title: 'Post status update',
-            subtitle: 'Publish to the incident room',
-            color: '#22c55e',
-          },
-        },
-      }
+): ProductDemoBuilderState {
+  const definition = PRODUCT_DEMO_TEMPLATE_DEFINITIONS[template]
+
+  return {
+    templateKey: definition.key,
+    optionalNodes: { ...definition.optionalNodes },
+    presetKeys: { ...definition.presetKeys },
+    statusOverrides: {},
   }
+}
+
+function readProductDemoBuilderState(graph: GraphDocument): ProductDemoBuilderState {
+  const templateKey =
+    isProductDemoTemplateKey(graph.metadata?.templateKey) &&
+    PRODUCT_DEMO_TEMPLATE_DEFINITIONS[graph.metadata.templateKey]
+      ? graph.metadata.templateKey
+      : 'support-triage'
+  const base = createProductDemoBuilderState(templateKey)
+  const metadataState = readBuilderStateMetadata(graph)
+
+  if (!metadataState) {
+    return base
+  }
+
+  return {
+    templateKey: metadataState.templateKey,
+    optionalNodes: {
+      review: metadataState.optionalNodes.review,
+      action: metadataState.optionalNodes.action,
+    },
+    presetKeys: normalizePresetKeys(metadataState.presetKeys, metadataState.templateKey),
+    statusOverrides: normalizeStatusOverrides(metadataState.statusOverrides),
+  }
+}
+
+function readBuilderStateMetadata(
+  graph: GraphDocument,
+): ProductDemoBuilderState | null {
+  const builderState = graph.metadata?.builderState
+
+  if (!isRecord(builderState)) {
+    return null
+  }
+
+  const templateKey = builderState.templateKey
+  const optionalNodes = builderState.optionalNodes
+  const presetKeys = builderState.presetKeys
+  const statusOverrides = builderState.statusOverrides
+
+  if (
+    !isProductDemoTemplateKey(templateKey) ||
+    !isRecord(optionalNodes) ||
+    typeof optionalNodes.review !== 'boolean' ||
+    typeof optionalNodes.action !== 'boolean'
+  ) {
+    return null
+  }
+
+  return {
+    templateKey,
+    optionalNodes: {
+      review: optionalNodes.review,
+      action: optionalNodes.action,
+    },
+    presetKeys: isRecord(presetKeys) ? normalizePresetKeys(presetKeys, templateKey) : {},
+    statusOverrides: isRecord(statusOverrides)
+      ? normalizeStatusOverrides(statusOverrides)
+      : {},
+  }
+}
+
+function normalizePresetKeys(
+  value: Record<string, unknown>,
+  templateKey: ProductDemoTemplateKey,
+): Partial<Record<ProductDemoBuilderNodeId, string>> {
+  const defaults = PRODUCT_DEMO_TEMPLATE_DEFINITIONS[templateKey].presetKeys
+  const normalized: Partial<Record<ProductDemoBuilderNodeId, string>> = {}
+
+  for (const nodeId of PRODUCT_DEMO_NODE_ORDER) {
+    const presetKey = typeof value[nodeId] === 'string' ? value[nodeId] : defaults[nodeId]
+    normalized[nodeId] = getPresetByKey(nodeId, presetKey).key
+  }
+
+  return normalized
+}
+
+function normalizeStatusOverrides(
+  value: Record<string, unknown>,
+): Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>> {
+  const normalized: Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>> = {}
+
+  for (const nodeId of PRODUCT_DEMO_NODE_ORDER) {
+    const status = value[nodeId]
+
+    if (status === 'idle' || status === 'ready' || status === 'running') {
+      normalized[nodeId] = status
+    }
+  }
+
+  return normalized
+}
+
+function buildProductDemoGraph(
+  state: ProductDemoBuilderState,
+  previousGraph?: GraphDocument,
+): GraphDocument {
+  const previousNodes = new Map(previousGraph?.nodes.map((node) => [node.id, node]) ?? [])
+  const order = buildProductDemoNodeOrder(state.optionalNodes)
+  const nodes = order.map((nodeId) => createProductDemoNode(nodeId, state, previousNodes))
+
+  return {
+    version: '0.1.0',
+    metadata: {
+      name: PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].name,
+      templateKey: state.templateKey,
+      templateSummary: PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].summary,
+      builderState: {
+        templateKey: state.templateKey,
+        optionalNodes: state.optionalNodes,
+        presetKeys: state.presetKeys,
+        statusOverrides: state.statusOverrides,
+      },
+    },
+    nodes,
+    edges: buildProductDemoEdges(state.optionalNodes),
+  }
+}
+
+function createProductDemoNode(
+  nodeId: ProductDemoBuilderNodeId,
+  state: ProductDemoBuilderState,
+  previousNodes: Map<string, WorkflowNode>,
+): WorkflowNode {
+  const definition = PRODUCT_DEMO_NODE_DEFINITIONS[nodeId]
+  const preset = getPresetByKey(nodeId, state.presetKeys[nodeId])
+  const previousNode = previousNodes.get(nodeId)
+
+  return {
+    id: nodeId,
+    type: nodeId,
+    title: preset.title,
+    subtitle: preset.subtitle,
+    status: state.statusOverrides[nodeId] ?? preset.status ?? definition.defaultStatus,
+    position: previousNode?.position ?? definition.defaultPosition,
+    size: previousNode?.size ?? definition.defaultSize,
+    color: preset.color ?? definition.defaultColor,
+  }
+}
+
+function buildProductDemoEdges(
+  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
+) {
+  const edges = [
+    { id: 'e1', source: 'trigger', target: 'classify' },
+    { id: 'e2', source: 'classify', target: 'research' },
+    { id: 'e4', source: 'research', target: 'publish' },
+  ]
+
+  if (optionalNodes.review) {
+    edges.push(
+      { id: 'e3', source: 'classify', target: 'review' },
+      { id: 'e5', source: 'review', target: 'publish' },
+    )
+  }
+
+  if (optionalNodes.action) {
+    edges.push({ id: 'e6', source: 'publish', target: 'action' })
+  }
+
+  return edges
+}
+
+function buildProductDemoNodeOrder(
+  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
+): ProductDemoBuilderNodeId[] {
+  return PRODUCT_DEMO_NODE_ORDER.filter((nodeId) => hasActiveNode(optionalNodes, nodeId))
+}
+
+function hasActiveNode(
+  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
+  nodeId: ProductDemoBuilderNodeId,
+) {
+  if (nodeId === 'review') {
+    return optionalNodes.review
+  }
+
+  if (nodeId === 'action') {
+    return optionalNodes.action
+  }
+
+  return true
+}
+
+function getPresetByKey(
+  nodeId: ProductDemoBuilderNodeId,
+  presetKey?: string,
+): ProductDemoNodePreset {
+  const definition = PRODUCT_DEMO_NODE_DEFINITIONS[nodeId]
+
+  return (
+    definition.presetOptions.find((preset) => preset.key === presetKey) ??
+    definition.presetOptions[0]
+  )
+}
+
+function isProductDemoTemplateKey(value: unknown): value is ProductDemoTemplateKey {
+  return (
+    value === 'support-triage' || value === 'sales-escalation' || value === 'ops-incident'
+  )
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
