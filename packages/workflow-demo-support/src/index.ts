@@ -6,6 +6,7 @@ export {
   type DiagnosticsState,
 } from './diagnostics'
 export {
+  addProductDemoOptionalNode,
   createPerformanceLabState,
   describeFixtureTier,
   getFixtureGraph,
@@ -18,7 +19,9 @@ export {
   getProductDemoTemplateOptions,
   isDegradedFixture,
   isProductDemoOptionalNodeEnabled,
+  removeProductDemoOptionalNode,
   resolvePerformanceLabEditability,
+  type ProductDemoFollowUpActionNodeId,
   setProductDemoNodePreset,
   setProductDemoNodeStatus,
   setProductDemoOptionalNodeEnabled,

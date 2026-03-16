@@ -1,21 +1,50 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('product demo web component surface', () => {
+  test('keeps practical workflow controls above the fold on first render', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    const templateControl = page.locator('select[data-builder-control="template"]')
+    const addButton = page.getByRole('button', { name: 'Add follow-up action' })
+    const editor = page.locator('workflow-editor')
+    const configPanel = page.locator('[data-role="config-form"]')
+
+    await expect(templateControl).toBeVisible()
+    await expect(addButton).toBeVisible()
+    await expect(editor).toBeVisible()
+    await expect(configPanel).toBeVisible()
+  })
+
   test('renders the builder-first shell for the starter flow', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText('Demo-ready builder shell for the starter flow')).toBeVisible()
-    await expect(page.getByText('Product Demo now reads like a constrained builder.')).toBeVisible()
+    await expect(page.getByText('Workflow-builder testing playground')).toBeVisible()
+    await expect(page.getByText('Product Demo Playground')).toBeVisible()
     await expect(page.getByText('Config Panel', { exact: true })).toBeVisible()
-    await expect(page.getByText('Constrained Add / Remove', { exact: true })).toBeVisible()
+    await expect(page.getByText('Playground Controls', { exact: true })).toBeVisible()
     await expect(
-      page.getByText('Visible builder controls match actual behavior'),
+      page.getByText('Use this surface to modify a starter workflow'),
     ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
     await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
     await expect(page.getByText('Lab Controls', { exact: true })).toHaveCount(0)
     await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)
     await expect(page.locator('workflow-editor')).toHaveCount(1)
+  })
+
+  test('stays distinct from performance lab controls while exposing bounded node actions', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    await expect(page.locator('button[data-fixture]')).toHaveCount(0)
+    await expect(page.locator('select[data-control="editability"]')).toHaveCount(0)
+    await expect(page.locator('select[data-control="rendererPreference"]')).toHaveCount(0)
+    await expect(page.locator('select[data-control="kernelPreference"]')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Add follow-up action' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Remove approval gate' })).toBeVisible()
   })
 
   test('turns the runtime snapshot into a concrete engine status', async ({ page }) => {
@@ -60,13 +89,12 @@ test.describe('product demo web component surface', () => {
   test('updates builder configuration from the side panel', async ({ page }) => {
     await page.goto('/')
 
-    await page.locator('[data-flow-node="classify"]').click()
     await page
-      .locator('select[data-config-control="preset"][data-node-id="classify"]')
-      .selectOption('classify-severity')
+      .locator('select[data-config-control="preset"][data-node-id="trigger"]')
+      .selectOption('trigger-alert')
 
-    await expect(page.locator('[data-flow-node="classify"]')).toContainText('Severity gate')
-    await expect(page.locator('[data-role="config-title"]')).toContainText('Severity gate')
+    await expect(page.locator('[data-flow-node="trigger"]')).toContainText('Alert monitor')
+    await expect(page.locator('[data-role="config-title"]')).toContainText('Alert monitor')
   })
 
   test('keeps template-first starter flow swaps inside the builder shell', async ({ page }) => {
@@ -91,6 +119,17 @@ test.describe('product demo web component surface', () => {
     await expect(
       page.getByRole('button', { name: 'Remove follow-up action' }),
     ).toBeVisible()
+  })
+
+  test('supports adding more than one bounded follow-up action node', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByRole('button', { name: 'Add follow-up action' }).click()
+    await page.getByRole('button', { name: 'Add follow-up action' }).click()
+
+    await expect(page.locator('[data-flow-node="action"]')).toContainText('Slack summary')
+    await expect(page.locator('[data-flow-node="action-2"]')).toContainText('Slack summary')
+    await expect(page.getByText('2/3')).toBeVisible()
   })
 
   test('removes the supported approval gate through constrained controls', async ({ page }) => {

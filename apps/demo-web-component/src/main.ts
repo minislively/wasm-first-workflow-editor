@@ -2,6 +2,7 @@ import './style.css'
 
 import { createWorkflowEditor } from '@minislively/workflow-element'
 import {
+  addProductDemoOptionalNode,
   applyReadyDiagnostics,
   applyStatsDiagnostics,
   createInitialDiagnosticsState,
@@ -10,9 +11,9 @@ import {
   getProductDemoOptionalNodeOptions,
   getProductDemoTemplateOptions,
   getProductDemoTemplateSummary,
+  removeProductDemoOptionalNode,
   setProductDemoNodePreset,
   setProductDemoNodeStatus,
-  setProductDemoOptionalNodeEnabled,
   setProductDemoTemplate,
   type ProductDemoBuilderNodeId,
   type ProductDemoOptionalNodeFamily,
@@ -40,47 +41,46 @@ let activeNodeId: ProductDemoBuilderNodeId = 'trigger'
 
 app.innerHTML = `
   <main class="page">
-    <section class="hero-card">
+    <section class="mission-bar">
       <div>
         <p class="eyebrow">builder-first public surface</p>
-        <h1>Product Demo now reads like a constrained builder.</h1>
-        <p class="lede">
-          Start with a real stage, a real side-panel configuration flow, and a
-          truthful builder seam. The host owns builder chrome and trusted
-          mutations while the engine still owns selection, drag, pan, zoom, and
-          rendering.
+        <h1>Product Demo Playground</h1>
+        <p class="mission-copy">
+          Open the example workflow, add supported nodes, and inspect how the
+          runtime behaves while you edit. This page should feel directly usable,
+          not like a demo shell.
         </p>
       </div>
-      <div class="hero-stack">
-        <div class="hero-pill">Primary: Web Component</div>
-        <div class="hero-pill">Builder baseline: basic here, 100 in lab</div>
-        <div class="hero-pill">Heavy tiers: 500 / 1000 degraded by default</div>
-        <div class="hero-pill">Boundary: engine strict / shell flexible</div>
+      <div class="mission-pills">
+        <div class="mission-pill">Web Component primary</div>
+        <div class="mission-pill">Stage stays engine-owned</div>
+        <div class="mission-pill">Basic is the editable playground baseline</div>
+        <div class="mission-pill">Heavy-tier truth stays in Performance Lab</div>
       </div>
     </section>
     <section class="surface-shell">
       <div class="surface-header">
         <div>
           <div class="panel-label">Product Demo</div>
-          <strong class="surface-title">Demo-ready builder shell for the starter flow</strong>
+          <strong class="surface-title">Workflow-builder testing playground</strong>
         </div>
         <div class="surface-summary">
-          Visible builder controls match actual behavior: configure supported
-          steps in the panel, add or remove only the approved node families, and
-          use stage interaction for selection, drag, pan, and zoom.
+          Use this surface to modify a starter workflow and understand what the
+          current runtime is doing while you work. Broader heavy-tier and forced
+          runtime comparisons still belong in Performance Lab.
         </div>
-      </div>
-      <div class="baseline-strip">
-        <div class="baseline-pill">Basic: editing-capable builder baseline</div>
-        <div class="baseline-pill">100: editing-capable lab baseline</div>
-        <div class="baseline-pill">500 / 1000: degraded-by-default in Performance Lab</div>
       </div>
       <div class="surface-layout">
         <aside class="builder-sidebar">
-          <section class="panel-card">
-            <div class="panel-label">Starter Flow</div>
-            <strong>Template-first support lives inside the builder shell.</strong>
-            <div class="template-control-stack">
+          <section class="panel-card playground-card">
+            <div class="panel-label">Playground Controls</div>
+            <strong>Try the workflow immediately.</strong>
+            <div class="playground-checklist">
+              <p>1. Switch the starter flow.</p>
+              <p>2. Add or remove supported nodes.</p>
+              <p>3. Click a stage node to inspect and retune it.</p>
+            </div>
+            <div class="playground-stack">
               <label>
                 <span>Starter template</span>
                 <select data-builder-control="template">
@@ -92,40 +92,28 @@ app.innerHTML = `
                     .join('')}
                 </select>
               </label>
+              <div class="optional-node-controls" data-role="optional-node-controls"></div>
             </div>
             <div class="template-summary" data-role="template-summary"></div>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Flow Map</div>
-            <strong>Open a step in the config panel.</strong>
+            <div class="panel-label section-break">Flow Map</div>
+            <strong>Open a step, then test it on the stage.</strong>
             <p class="panel-copy">
-              Click a stage node or open one from the list below. Shell-driven
-              config is the main editing seam for this public builder surface.
+              Use the list for fast navigation, then click the stage to confirm
+              the same node under real interaction.
             </p>
             <div class="flow-map" data-role="flow-map"></div>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Constrained Add / Remove</div>
-            <strong>Supported nodes snap into the builder seam.</strong>
-            <div class="optional-node-controls" data-role="optional-node-controls"></div>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Runtime Snapshot</div>
-            <strong data-role="runtime-title">Booting editor runtime...</strong>
-            <p class="panel-copy" data-role="runtime-copy">
-              Waiting for the custom element to report backend, kernel, and fallback state.
-            </p>
           </section>
         </aside>
         <section class="editor-shell">
           <div class="builder-banner">
             <div>
-              <div class="panel-label">Builder Surface</div>
+              <div class="panel-label">Live Stage</div>
               <strong>Stage interaction stays engine-owned.</strong>
             </div>
             <p>
-              Drag nodes, pan, zoom, and select on the stage. Shell-owned config
-              changes keep the starter flow constrained and trustworthy.
+              Drag, pan, zoom, and select here. Keep the shell focused on
+              workflow editing and contextual runtime understanding, not on
+              presentation copy.
             </p>
           </div>
           <div id="mount"></div>
@@ -135,21 +123,21 @@ app.innerHTML = `
             <div class="panel-label">Config Panel</div>
             <strong data-role="config-title">Open a builder step</strong>
             <p class="panel-copy" data-role="config-copy">
-              The stage and flow map both feed this host-owned configuration panel.
+              The stage and flow map both feed this host-owned panel so users
+              can tweak the active node without taking over rendering.
             </p>
             <div class="config-form" data-role="config-form"></div>
+            <div class="runtime-card">
+              <div class="panel-label">Runtime Context</div>
+              <strong data-role="runtime-title">Booting editor runtime...</strong>
+              <p class="panel-copy" data-role="runtime-copy">
+                Waiting for the custom element to report backend, kernel, and fallback state.
+              </p>
+            </div>
           </section>
           <section class="panel-card">
             <div class="panel-label">Stage Selection</div>
             <div class="selection-list" data-role="selection-list"></div>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Boundary Reminder</div>
-            <div class="contract-list">
-              <p>Shell owns templates, config, and constrained node actions.</p>
-              <p>Engine owns hit testing, drag loops, pan/zoom, and rendering.</p>
-              <p>No React-Flow-like rendering contract is implied anywhere here.</p>
-            </div>
           </section>
         </aside>
       </div>
@@ -240,15 +228,19 @@ app.addEventListener('click', (event) => {
   const toggleButton = target.closest<HTMLButtonElement>('[data-optional-node-family]')
   if (toggleButton) {
     const family = toggleButton.dataset.optionalNodeFamily
+    const action = toggleButton.dataset.optionalNodeAction
 
-    if (isOptionalNodeFamily(family)) {
-      void commitGraph(
-        setProductDemoOptionalNodeEnabled(
-          currentGraph,
-          family,
-          toggleButton.dataset.enabled !== 'true',
-        ),
-      )
+    if (!isOptionalNodeFamily(family)) {
+      return
+    }
+
+    if (action === 'add') {
+      void commitGraph(addProductDemoOptionalNode(currentGraph, family))
+      return
+    }
+
+    if (action === 'remove') {
+      void commitGraph(removeProductDemoOptionalNode(currentGraph, family))
     }
   }
 })
@@ -360,19 +352,41 @@ function renderPanels() {
   optionalNodeControls!.innerHTML = getProductDemoOptionalNodeOptions(currentGraph)
     .map(
       (option) => `
-        <article class="toggle-card">
-          <div>
+        <article class="toggle-card is-compact">
+          <div class="toggle-header">
             <strong>${option.label}</strong>
-            <p>${option.summary}</p>
+            <span class="toggle-meta">${option.activeCount}/${option.maxCount}</span>
           </div>
-          <button
-            class="toggle-button"
-            data-optional-node-family="${option.family}"
-            data-enabled="${option.enabled}"
-            type="button"
-          >
-            ${option.enabled ? `Remove ${option.label.toLowerCase()}` : `Add ${option.label.toLowerCase()}`}
-          </button>
+          <div class="toggle-actions">
+            ${
+              option.canAdd
+                ? `
+                  <button
+                    class="toggle-button"
+                    data-optional-node-family="${option.family}"
+                    data-optional-node-action="add"
+                    type="button"
+                  >
+                    Add ${option.label.toLowerCase()}
+                  </button>
+                `
+                : ''
+            }
+            ${
+              option.canRemove
+                ? `
+                  <button
+                    class="toggle-button is-secondary"
+                    data-optional-node-family="${option.family}"
+                    data-optional-node-action="remove"
+                    type="button"
+                  >
+                    Remove ${option.label.toLowerCase()}
+                  </button>
+                `
+                : ''
+            }
+          </div>
         </article>
       `,
     )
@@ -471,7 +485,9 @@ function isBuilderNodeId(value: string | undefined): value is ProductDemoBuilder
     value === 'research' ||
     value === 'review' ||
     value === 'publish' ||
-    value === 'action'
+    value === 'action' ||
+    value === 'action-2' ||
+    value === 'action-3'
   )
 }
 

@@ -44,6 +44,10 @@ export type ProductDemoBuilderNodeId =
   | 'review'
   | 'publish'
   | 'action'
+  | 'action-2'
+  | 'action-3'
+
+export type ProductDemoFollowUpActionNodeId = 'action' | 'action-2' | 'action-3'
 
 export type ProductDemoOptionalNodeFamily = 'review' | 'action'
 
@@ -78,19 +82,32 @@ export type ProductDemoOptionalNodeOption = {
   label: string
   summary: string
   enabled: boolean
+  activeCount: number
+  maxCount: number
+  canAdd: boolean
+  canRemove: boolean
 }
 
 type ProductDemoBuilderState = {
   templateKey: ProductDemoTemplateKey
-  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>
+  optionalNodes: {
+    review: boolean
+  }
+  actionCount: number
   presetKeys: Partial<Record<ProductDemoBuilderNodeId, string>>
   statusOverrides: Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>>
 }
 
 type ProductDemoTemplateDefinition = ProductDemoTemplateOption & {
   name: string
-  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>
-  presetKeys: Record<ProductDemoBuilderNodeId, string>
+  optionalNodes: {
+    review: boolean
+  }
+  actionCount: number
+  presetKeys: Record<
+    'trigger' | 'classify' | 'research' | 'review' | 'publish' | 'action',
+    string
+  >
 }
 
 type ProductDemoNodeDefinition = {
@@ -108,6 +125,47 @@ type ProductDemoNodeDefinition = {
   presetOptions: readonly ProductDemoNodePreset[]
 }
 
+const PRODUCT_DEMO_NODE_ORDER: readonly ProductDemoBuilderNodeId[] = [
+  'trigger',
+  'classify',
+  'research',
+  'review',
+  'publish',
+  'action',
+  'action-2',
+  'action-3',
+]
+
+const PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS: readonly ProductDemoFollowUpActionNodeId[] = [
+  'action',
+  'action-2',
+  'action-3',
+]
+
+const FOLLOW_UP_ACTION_PRESET_OPTIONS: readonly ProductDemoNodePreset[] = [
+  {
+    key: 'action-slack',
+    label: 'Slack summary',
+    title: 'Slack summary',
+    subtitle: 'Share the result to the builder team room',
+    color: '#14b8a6',
+  },
+  {
+    key: 'action-crm-note',
+    label: 'CRM note',
+    title: 'Write CRM note',
+    subtitle: 'Attach the final handoff outcome to the account',
+    color: '#0ea5e9',
+  },
+  {
+    key: 'action-pager',
+    label: 'Pager escalation',
+    title: 'Pager escalation',
+    subtitle: 'Notify the on-call engineer about the update',
+    color: '#fb7185',
+  },
+]
+
 const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
   ProductDemoTemplateKey,
   ProductDemoTemplateDefinition
@@ -117,11 +175,11 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Support triage',
     summary:
       'Webhook intake, issue classification, knowledge lookup, then an approval-backed reply.',
-    name: 'Support triage builder',
+    name: 'Support triage playground',
     optionalNodes: {
       review: true,
-      action: false,
     },
+    actionCount: 0,
     presetKeys: {
       trigger: 'trigger-webhook',
       classify: 'classify-intent',
@@ -136,11 +194,11 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Sales escalation',
     summary:
       'Lead qualification, CRM enrichment, rep approval, then a follow-up handoff.',
-    name: 'Sales escalation builder',
+    name: 'Sales escalation playground',
     optionalNodes: {
       review: true,
-      action: false,
     },
+    actionCount: 0,
     presetKeys: {
       trigger: 'trigger-crm',
       classify: 'classify-qualify',
@@ -155,11 +213,11 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Ops incident',
     summary:
       'Alert intake, severity routing, investigation, mitigation approval, and status publish.',
-    name: 'Ops incident builder',
+    name: 'Ops incident playground',
     optionalNodes: {
       review: true,
-      action: false,
     },
+    actionCount: 0,
     presetKeys: {
       trigger: 'trigger-alert',
       classify: 'classify-severity',
@@ -170,15 +228,6 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     },
   },
 }
-
-const PRODUCT_DEMO_NODE_ORDER: readonly ProductDemoBuilderNodeId[] = [
-  'trigger',
-  'classify',
-  'research',
-  'review',
-  'publish',
-  'action',
-]
 
 const PRODUCT_DEMO_NODE_DEFINITIONS: Record<
   ProductDemoBuilderNodeId,
@@ -227,7 +276,7 @@ const PRODUCT_DEMO_NODE_DEFINITIONS: Record<
     family: 'core',
     panelTitle: 'Routing configuration',
     panelCopy:
-      'Condition and routing behavior stay constrained to a few trustworthy presets so the builder shell does not imply unrestricted graph logic authoring.',
+      'Condition and routing behavior stay constrained to a few trustworthy presets so the playground does not imply unrestricted graph logic authoring.',
     presetLabel: 'Routing mode',
     defaultColor: '#38bdf8',
     defaultStatus: 'running',
@@ -366,48 +415,24 @@ const PRODUCT_DEMO_NODE_DEFINITIONS: Record<
       },
     ],
   },
-  action: {
-    id: 'action',
-    label: 'Follow-up',
-    slotLabel: 'Optional action',
-    family: 'optional',
-    panelTitle: 'Follow-up action configuration',
-    panelCopy:
-      'This constrained add/remove lane demonstrates shell-owned expansion of the starter flow. Added nodes snap into the supported builder seam instead of implying free placement.',
-    presetLabel: 'Follow-up action',
-    defaultColor: '#14b8a6',
-    defaultStatus: 'idle',
-    defaultPosition: { x: 1158, y: 126 },
-    defaultSize: { width: 192, height: 90 },
-    presetOptions: [
-      {
-        key: 'action-slack',
-        label: 'Slack summary',
-        title: 'Slack summary',
-        subtitle: 'Share the result to the builder team room',
-        color: '#14b8a6',
-      },
-      {
-        key: 'action-crm-note',
-        label: 'CRM note',
-        title: 'Write CRM note',
-        subtitle: 'Attach the final handoff outcome to the account',
-        color: '#0ea5e9',
-      },
-      {
-        key: 'action-pager',
-        label: 'Pager escalation',
-        title: 'Pager escalation',
-        subtitle: 'Notify the on-call engineer about the update',
-        color: '#fb7185',
-      },
-    ],
-  },
+  action: createFollowUpActionDefinition('action', 'Follow-up action', 'Optional action 1', 1158),
+  'action-2': createFollowUpActionDefinition(
+    'action-2',
+    'Follow-up action 2',
+    'Optional action 2',
+    1454,
+  ),
+  'action-3': createFollowUpActionDefinition(
+    'action-3',
+    'Follow-up action 3',
+    'Optional action 3',
+    1750,
+  ),
 }
 
 const PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS: readonly Omit<
   ProductDemoOptionalNodeOption,
-  'enabled'
+  'enabled' | 'activeCount' | 'maxCount' | 'canAdd' | 'canRemove'
 >[] = [
   {
     family: 'review',
@@ -419,7 +444,8 @@ const PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS: readonly Omit<
     family: 'action',
     nodeId: 'action',
     label: 'Follow-up action',
-    summary: 'Add or remove the supported post-publish action lane.',
+    summary:
+      'Add up to three supported follow-up actions in a snapped chain for practical rendering and flow testing.',
   },
 ] as const
 
@@ -499,9 +525,8 @@ export function getProductDemoBuilderNodes(
   graph: GraphDocument,
 ): ProductDemoBuilderNodeSummary[] {
   const state = readProductDemoBuilderState(graph)
-  const activeNodes = new Set(buildProductDemoNodeOrder(state.optionalNodes))
 
-  return PRODUCT_DEMO_NODE_ORDER.filter((nodeId) => activeNodes.has(nodeId)).map((nodeId) => {
+  return buildProductDemoNodeOrder(state).map((nodeId) => {
     const definition = PRODUCT_DEMO_NODE_DEFINITIONS[nodeId]
     const preset = getPresetByKey(nodeId, state.presetKeys[nodeId])
     const status = state.statusOverrides[nodeId] ?? preset.status ?? definition.defaultStatus
@@ -536,17 +561,35 @@ export function getProductDemoOptionalNodeOptions(
 ): ProductDemoOptionalNodeOption[] {
   const state = readProductDemoBuilderState(graph)
 
-  return PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS.map((option) => ({
-    ...option,
-    enabled: state.optionalNodes[option.family],
-  }))
+  return PRODUCT_DEMO_OPTIONAL_NODE_OPTIONS.map((option) => {
+    if (option.family === 'review') {
+      return {
+        ...option,
+        enabled: state.optionalNodes.review,
+        activeCount: state.optionalNodes.review ? 1 : 0,
+        maxCount: 1,
+        canAdd: !state.optionalNodes.review,
+        canRemove: state.optionalNodes.review,
+      }
+    }
+
+    return {
+      ...option,
+      enabled: state.actionCount > 0,
+      activeCount: state.actionCount,
+      maxCount: PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.length,
+      canAdd: state.actionCount < PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.length,
+      canRemove: state.actionCount > 0,
+    }
+  })
 }
 
 export function isProductDemoOptionalNodeEnabled(
   graph: GraphDocument,
   family: ProductDemoOptionalNodeFamily,
 ): boolean {
-  return readProductDemoBuilderState(graph).optionalNodes[family]
+  const state = readProductDemoBuilderState(graph)
+  return family === 'review' ? state.optionalNodes.review : state.actionCount > 0
 }
 
 export function setProductDemoTemplate(
@@ -564,7 +607,7 @@ export function setProductDemoNodePreset(
 ): GraphDocument {
   const state = readProductDemoBuilderState(graph)
 
-  if (!hasActiveNode(state.optionalNodes, nodeId)) {
+  if (!hasActiveNode(state, nodeId)) {
     return graph
   }
 
@@ -579,7 +622,7 @@ export function setProductDemoNodeStatus(
 ): GraphDocument {
   const state = readProductDemoBuilderState(graph)
 
-  if (!hasActiveNode(state.optionalNodes, nodeId)) {
+  if (!hasActiveNode(state, nodeId)) {
     return graph
   }
 
@@ -594,11 +637,70 @@ export function setProductDemoOptionalNodeEnabled(
 ): GraphDocument {
   const state = readProductDemoBuilderState(graph)
 
-  if (state.optionalNodes[family] === enabled) {
+  if (family === 'review') {
+    if (state.optionalNodes.review === enabled) {
+      return graph
+    }
+
+    state.optionalNodes.review = enabled
+    return buildProductDemoGraph(state, graph)
+  }
+
+  const nextCount = enabled ? Math.max(state.actionCount, 1) : 0
+  if (nextCount === state.actionCount) {
     return graph
   }
 
-  state.optionalNodes[family] = enabled
+  state.actionCount = nextCount
+  return buildProductDemoGraph(state, graph)
+}
+
+export function addProductDemoOptionalNode(
+  graph: GraphDocument,
+  family: ProductDemoOptionalNodeFamily,
+): GraphDocument {
+  const state = readProductDemoBuilderState(graph)
+
+  if (family === 'review') {
+    if (state.optionalNodes.review) {
+      return graph
+    }
+
+    state.optionalNodes.review = true
+    return buildProductDemoGraph(state, graph)
+  }
+
+  if (state.actionCount >= PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.length) {
+    return graph
+  }
+
+  state.actionCount += 1
+  return buildProductDemoGraph(state, graph)
+}
+
+export function removeProductDemoOptionalNode(
+  graph: GraphDocument,
+  family: ProductDemoOptionalNodeFamily,
+): GraphDocument {
+  const state = readProductDemoBuilderState(graph)
+
+  if (family === 'review') {
+    if (!state.optionalNodes.review) {
+      return graph
+    }
+
+    state.optionalNodes.review = false
+    return buildProductDemoGraph(state, graph)
+  }
+
+  if (state.actionCount === 0) {
+    return graph
+  }
+
+  const removedNodeId = PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS[state.actionCount - 1]
+  delete state.presetKeys[removedNodeId]
+  delete state.statusOverrides[removedNodeId]
+  state.actionCount -= 1
   return buildProductDemoGraph(state, graph)
 }
 
@@ -686,7 +788,12 @@ function createProductDemoBuilderState(
   return {
     templateKey: definition.key,
     optionalNodes: { ...definition.optionalNodes },
-    presetKeys: { ...definition.presetKeys },
+    actionCount: definition.actionCount,
+    presetKeys: {
+      ...definition.presetKeys,
+      'action-2': definition.presetKeys.action,
+      'action-3': definition.presetKeys.action,
+    },
     statusOverrides: {},
   }
 }
@@ -708,8 +815,8 @@ function readProductDemoBuilderState(graph: GraphDocument): ProductDemoBuilderSt
     templateKey: metadataState.templateKey,
     optionalNodes: {
       review: metadataState.optionalNodes.review,
-      action: metadataState.optionalNodes.action,
     },
+    actionCount: metadataState.actionCount,
     presetKeys: normalizePresetKeys(metadataState.presetKeys, metadataState.templateKey),
     statusOverrides: normalizeStatusOverrides(metadataState.statusOverrides),
   }
@@ -726,6 +833,7 @@ function readBuilderStateMetadata(
 
   const templateKey = builderState.templateKey
   const optionalNodes = builderState.optionalNodes
+  const actionCount = builderState.actionCount
   const presetKeys = builderState.presetKeys
   const statusOverrides = builderState.statusOverrides
 
@@ -733,7 +841,7 @@ function readBuilderStateMetadata(
     !isProductDemoTemplateKey(templateKey) ||
     !isRecord(optionalNodes) ||
     typeof optionalNodes.review !== 'boolean' ||
-    typeof optionalNodes.action !== 'boolean'
+    typeof actionCount !== 'number'
   ) {
     return null
   }
@@ -742,8 +850,8 @@ function readBuilderStateMetadata(
     templateKey,
     optionalNodes: {
       review: optionalNodes.review,
-      action: optionalNodes.action,
     },
+    actionCount: clampActionCount(actionCount),
     presetKeys: isRecord(presetKeys) ? normalizePresetKeys(presetKeys, templateKey) : {},
     statusOverrides: isRecord(statusOverrides)
       ? normalizeStatusOverrides(statusOverrides)
@@ -755,7 +863,7 @@ function normalizePresetKeys(
   value: Record<string, unknown>,
   templateKey: ProductDemoTemplateKey,
 ): Partial<Record<ProductDemoBuilderNodeId, string>> {
-  const defaults = PRODUCT_DEMO_TEMPLATE_DEFINITIONS[templateKey].presetKeys
+  const defaults = createProductDemoBuilderState(templateKey).presetKeys
   const normalized: Partial<Record<ProductDemoBuilderNodeId, string>> = {}
 
   for (const nodeId of PRODUCT_DEMO_NODE_ORDER) {
@@ -787,7 +895,7 @@ function buildProductDemoGraph(
   previousGraph?: GraphDocument,
 ): GraphDocument {
   const previousNodes = new Map(previousGraph?.nodes.map((node) => [node.id, node]) ?? [])
-  const order = buildProductDemoNodeOrder(state.optionalNodes)
+  const order = buildProductDemoNodeOrder(state)
   const nodes = order.map((nodeId) => createProductDemoNode(nodeId, state, previousNodes))
 
   return {
@@ -799,12 +907,13 @@ function buildProductDemoGraph(
       builderState: {
         templateKey: state.templateKey,
         optionalNodes: state.optionalNodes,
+        actionCount: state.actionCount,
         presetKeys: state.presetKeys,
         statusOverrides: state.statusOverrides,
       },
     },
     nodes,
-    edges: buildProductDemoEdges(state.optionalNodes),
+    edges: buildProductDemoEdges(state),
   }
 }
 
@@ -819,7 +928,7 @@ function createProductDemoNode(
 
   return {
     id: nodeId,
-    type: nodeId,
+    type: isFollowUpActionNodeId(nodeId) ? 'action' : nodeId,
     title: preset.title,
     subtitle: preset.subtitle,
     status: state.statusOverrides[nodeId] ?? preset.status ?? definition.defaultStatus,
@@ -829,45 +938,63 @@ function createProductDemoNode(
   }
 }
 
-function buildProductDemoEdges(
-  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
-) {
+function buildProductDemoEdges(state: ProductDemoBuilderState) {
   const edges = [
     { id: 'e1', source: 'trigger', target: 'classify' },
     { id: 'e2', source: 'classify', target: 'research' },
     { id: 'e4', source: 'research', target: 'publish' },
   ]
 
-  if (optionalNodes.review) {
+  if (state.optionalNodes.review) {
     edges.push(
       { id: 'e3', source: 'classify', target: 'review' },
       { id: 'e5', source: 'review', target: 'publish' },
     )
   }
 
-  if (optionalNodes.action) {
-    edges.push({ id: 'e6', source: 'publish', target: 'action' })
+  const activeActions = PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.slice(0, state.actionCount)
+  if (activeActions.length > 0) {
+    edges.push({ id: 'e6', source: 'publish', target: activeActions[0] })
+
+    for (let index = 1; index < activeActions.length; index += 1) {
+      edges.push({
+        id: `e-action-${index + 6}`,
+        source: activeActions[index - 1],
+        target: activeActions[index],
+      })
+    }
   }
 
   return edges
 }
 
 function buildProductDemoNodeOrder(
-  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
+  state: ProductDemoBuilderState,
 ): ProductDemoBuilderNodeId[] {
-  return PRODUCT_DEMO_NODE_ORDER.filter((nodeId) => hasActiveNode(optionalNodes, nodeId))
+  const order: ProductDemoBuilderNodeId[] = ['trigger', 'classify', 'research']
+
+  if (state.optionalNodes.review) {
+    order.push('review')
+  }
+
+  order.push('publish')
+  order.push(...PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.slice(0, state.actionCount))
+
+  return order
 }
 
 function hasActiveNode(
-  optionalNodes: Record<ProductDemoOptionalNodeFamily, boolean>,
+  state: ProductDemoBuilderState,
   nodeId: ProductDemoBuilderNodeId,
 ) {
   if (nodeId === 'review') {
-    return optionalNodes.review
+    return state.optionalNodes.review
   }
 
-  if (nodeId === 'action') {
-    return optionalNodes.action
+  if (isFollowUpActionNodeId(nodeId)) {
+    return PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS
+      .slice(0, state.actionCount)
+      .includes(nodeId)
   }
 
   return true
@@ -885,10 +1012,41 @@ function getPresetByKey(
   )
 }
 
+function createFollowUpActionDefinition(
+  id: ProductDemoFollowUpActionNodeId,
+  label: string,
+  slotLabel: string,
+  x: number,
+): ProductDemoNodeDefinition {
+  return {
+    id,
+    label,
+    slotLabel,
+    family: 'optional',
+    panelTitle: 'Follow-up action configuration',
+    panelCopy:
+      'This bounded follow-up chain is for practical rendering and flow testing. Added nodes snap into the supported seam instead of implying free placement.',
+    presetLabel: 'Follow-up action',
+    defaultColor: '#14b8a6',
+    defaultStatus: 'idle',
+    defaultPosition: { x, y: 126 },
+    defaultSize: { width: 192, height: 90 },
+    presetOptions: FOLLOW_UP_ACTION_PRESET_OPTIONS,
+  }
+}
+
+function isFollowUpActionNodeId(
+  value: ProductDemoBuilderNodeId,
+): value is ProductDemoFollowUpActionNodeId {
+  return PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.includes(value as ProductDemoFollowUpActionNodeId)
+}
+
+function clampActionCount(value: number) {
+  return Math.max(0, Math.min(PRODUCT_DEMO_FOLLOW_UP_ACTION_IDS.length, Math.floor(value)))
+}
+
 function isProductDemoTemplateKey(value: unknown): value is ProductDemoTemplateKey {
-  return (
-    value === 'support-triage' || value === 'sales-escalation' || value === 'ops-incident'
-  )
+  return value === 'support-triage' || value === 'sales-escalation' || value === 'ops-incident'
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

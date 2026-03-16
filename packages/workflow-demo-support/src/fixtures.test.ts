@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  addProductDemoOptionalNode,
   createPerformanceLabState,
   getFixtureGraph,
   getFixtureInteractionContract,
@@ -9,6 +10,7 @@ import {
   getProductDemoGraph,
   getProductDemoOptionalNodeOptions,
   isDegradedFixture,
+  removeProductDemoOptionalNode,
   resolvePerformanceLabEditability,
   setProductDemoNodePreset,
   setProductDemoNodeStatus,
@@ -99,16 +101,51 @@ describe('workflow-demo-support fixtures', () => {
     expect(getProductDemoBuilderNode(graph, 'publish')?.currentStatus).toBe('running')
   })
 
-  it('adds the supported follow-up action node when enabled', () => {
-    const graph = setProductDemoOptionalNodeEnabled(getProductDemoGraph(), 'action', true)
+  it('adds the supported follow-up action node through the bounded playground seam', () => {
+    const graph = addProductDemoOptionalNode(getProductDemoGraph(), 'action')
 
     expect(getProductDemoOptionalNodeOptions(graph)).toContainEqual(
       expect.objectContaining({
         family: 'action',
         enabled: true,
+        activeCount: 1,
       }),
     )
     expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).toContain('action')
+  })
+
+  it('keeps bounded supported node families explicit when multiple playground nodes are active', () => {
+    const graph = addProductDemoOptionalNode(
+      addProductDemoOptionalNode(getProductDemoGraph(), 'action'),
+      'action',
+    )
+
+    expect(
+      getProductDemoOptionalNodeOptions(graph).find((option) => option.family === 'action'),
+    ).toMatchObject({
+      activeCount: 2,
+      maxCount: 3,
+      canAdd: true,
+      canRemove: true,
+    })
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).toEqual(
+      expect.arrayContaining(['review', 'action', 'action-2']),
+    )
+  })
+
+  it('removes only the last repeated follow-up action node when shrinking the chain', () => {
+    const graph = removeProductDemoOptionalNode(
+      addProductDemoOptionalNode(
+        addProductDemoOptionalNode(getProductDemoGraph(), 'action'),
+        'action',
+      ),
+      'action',
+    )
+
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).toEqual(
+      expect.arrayContaining(['action']),
+    )
+    expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).not.toContain('action-2')
   })
 
   it('removes the supported approval gate when disabled', () => {
