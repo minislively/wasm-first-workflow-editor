@@ -1,6 +1,7 @@
 # Public Surface Reliability
 
 This repository treats `Product Demo` and `Performance Lab` as public surfaces, not internal-only examples.
+`Product Demo` is the representative product screen. `Performance Lab` is the proof surface that validates the runtime behind it.
 
 The reliability rule is simple:
 
@@ -18,6 +19,7 @@ The reliability rule is simple:
 - template-first starter flow inside the builder surface
 - constrained add/remove of the supported approval and follow-up node families
 - lightweight runtime snapshot instead of diagnostics-heavy evaluation panels
+- representative story for how an adopter would embed the builder in a production shell
 
 This keeps the visible contract narrow enough to stay trustworthy.
 
@@ -29,6 +31,7 @@ This keeps the visible contract narrow enough to stay trustworthy.
 - explicit runtime controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active diagnostics rows
 - explicit fallback reporting when the preferred runtime path is unavailable
+- heavier-fixture proof surface rather than the primary product pitch
 
 This surface is where heavier fixture behavior should be interpreted.
 
@@ -61,7 +64,7 @@ Reliability depends on keeping the architecture boundary intact:
 - host owns routing, persistence, shell layout, side-panel config UI, constrained builder actions, and API-driven flows
 - engine owns pointer handling, drag loops, selection mechanics, hit testing, pan/zoom, and graph-stage rendering
 
-The `Web Component` contract remains the primary public integration path. React stays a secondary host wrapper, not the graph hot path owner.
+The `Web Component` contract remains the primary public integration path. React stays a secondary host wrapper, not the graph hot path owner or the main product narrative.
 
 ## Template-first public story
 

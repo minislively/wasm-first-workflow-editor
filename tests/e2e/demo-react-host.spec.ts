@@ -6,7 +6,9 @@ const reactBaseUrl =
 test('react host mounts the shared editor contract', async ({ page }) => {
   await page.goto(reactBaseUrl)
 
-  await expect(page.getByText('Use React as the host shell, not as the graph engine.')).toBeVisible()
+  await expect(
+    page.getByText('Use React when your product shell already lives there.'),
+  ).toBeVisible()
   await expect(page.locator('workflow-editor')).toHaveCount(1)
   await expect(page.getByText('Host ready: React is hosting the same custom element contract')).toBeVisible()
 })

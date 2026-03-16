@@ -45,7 +45,7 @@ app.innerHTML = `
       <p class="eyebrow">Product Demo</p>
       <h1>Product Demo Playground</h1>
       <p class="mission-copy">
-        캔버스에서 바로 에이전트 빌더를 체험합니다.
+        팀이 바로 도입할 수 있는 대표 에이전트 빌더 화면을 캔버스에서 확인합니다.
       </p>
     </section>
     <section class="surface-shell">
@@ -55,7 +55,7 @@ app.innerHTML = `
             <div class="builder-banner">
               <div class="builder-banner-copy">
                 <div class="panel-label">Live Canvas</div>
-                <strong>노드가 먼저 보여야 하는 빌더 화면</strong>
+                <strong>제품 대표 화면으로 쓰는 빌더 캔버스</strong>
               </div>
               <div class="builder-banner-meta">
                 <p>Drag, pan, zoom, selection을 stage에서 바로 확인합니다.</p>

@@ -1,6 +1,6 @@
 # WASM-First Workflow Editor
 
-Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
+Production-ready, embeddable agent builder foundation with a WASM-first runtime path.
 
 [![verify](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml/badge.svg)](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml)
 
@@ -8,7 +8,7 @@ Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
 
 ## v0 promise
 
-This repository does not promise infinite scale. It promises a measurable baseline:
+This repository does not promise infinite scale. It promises a builder teams can adopt quickly with a measurable runtime baseline:
 
 - `Web Component` is the primary integration path
 - `React` stays a secondary host wrapper
@@ -18,28 +18,30 @@ This repository does not promise infinite scale. It promises a measurable baseli
 
 ## Why this exists
 
-Most node editors let shell convenience leak into the graph hot path. This repository does the opposite:
+Most node editors make it hard to ship a branded builder without letting shell convenience leak into the graph hot path. This repository does the opposite:
 
-- the graph stage is treated like a scene engine
-- the host shell stays open for branding and integration
+- Product Demo shows the representative product screen teams can adapt into their own service
+- Performance Lab proves the runtime, fallback, and heavier-fixture behavior behind that product promise
+- the graph stage is treated like a scene engine while the host shell stays open for branding and integration
 - the primary adoption path is `Web Component`, not framework lock-in
 
 ## What ships in this baseline
 
-- Runnable `Web Component` demo
-- Runnable `React` host demo
+- Runnable `Product Demo` app on the primary `Web Component` path
+- Runnable `Performance Lab` proof surface
+- Runnable `React` host demo for secondary integration support
 - Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
 - Architecture, adoption, and performance-boundary docs
 
 ## Product Demo
 
-Use `apps/demo-web-component` when you want to understand the editor as a product:
+Use `apps/demo-web-component` when you want to understand the editor as the product your team would actually embed:
 
 - constrained builder shell with a real stage plus side-panel config flow
 - template-first starter flow inside the builder surface
 - constrained add/remove controls for the supported approval and follow-up node families
 - lightweight runtime feedback without lab-style diagnostics overload
-- clear `Web Component`-first story with `React` kept secondary
+- representative `Web Component`-first product story with `React` kept secondary
 
 Run it with:
 
@@ -49,7 +51,7 @@ pnpm demo:web-component
 
 ## Performance Lab
 
-Use `apps/performance-lab` when you want to evaluate runtime behavior:
+Use `apps/performance-lab` when you want to verify the runtime behavior behind the product surface:
 
 - dedicated app instead of an in-page mode toggle
 - fixture selector for `basic / 100 / 500 / 1000`
@@ -58,9 +60,9 @@ Use `apps/performance-lab` when you want to evaluate runtime behavior:
 - requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
 - degraded-by-default heavy tiers with an explicit experimental-editing opt-in
 - syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
-- benchmark-oriented reading of the same editor contract
+- benchmark-oriented proof surface for the same editor contract
 
-The lab is a truth surface, not a marketing surface:
+The lab is a proof surface, not the main product face:
 
 - visible controls should match actual runtime behavior
 - requested and active runtime state should stay side by side
@@ -75,8 +77,8 @@ pnpm demo:performance-lab
 
 Default state model:
 
-- `Product Demo`: builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
-- `Performance Lab`: `fixture=100`, `editability=editable`, full diagnostics
+- `Product Demo`: representative builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
+- `Performance Lab`: proof-oriented `fixture=100`, `editability=editable`, full diagnostics
 
 Evaluation guidance:
 
@@ -97,8 +99,8 @@ Recommended evaluation path:
 
 The public surfaces are intentionally split:
 
-- `Product Demo`: trustworthy builder-first shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
-- `Performance Lab`: diagnostics-forward surface for fixture comparison and runtime preference evaluation
+- `Product Demo`: trustworthy representative product shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
+- `Performance Lab`: diagnostics-forward proof surface for fixture comparison and runtime preference evaluation
 
 Current trustworthy baseline:
 
@@ -110,6 +112,7 @@ Near-term usage guidance:
 
 - treat `Product Demo` as the place to assess the builder shell, side-panel flow, and constrained host-owned mutations
 - treat `Performance Lab` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
+- treat `React` as a supported secondary host wrapper when the surrounding product shell already lives in React
 - prefer template-first starter flows, host-controlled API wiring, and constrained add/remove seams over broad freeform editing promises when presenting the project publicly
 
 For the full surface contract, see [Public Surface Reliability](./docs/product/reliability.md).
@@ -123,6 +126,8 @@ Primary host:
 Secondary host:
 
 ![React host](./docs/assets/react-host-demo.png)
+
+The React demo exists to show shell-level integration support. It is not the representative product screen.
 
 ## Product rule
 

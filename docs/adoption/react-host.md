@@ -1,11 +1,12 @@
 # React Host Guidance
 
-`@minislively/workflow-react` exists for React host convenience, not as the primary architecture surface.
+`@minislively/workflow-react` exists for React host convenience, not as the primary architecture surface or the representative product story.
 
 ## Positioning
 
 - primary integration path: `@minislively/workflow-element`
 - secondary integration path: `@minislively/workflow-react`
+- use this when your surrounding application shell already lives in React and you want to preserve the same engine boundary
 
 The React wrapper should stay thin and should not become the owner of graph-stage behavior.
 
@@ -37,6 +38,7 @@ Good responsibilities for the React host:
 - shell layout
 - host inspector panels
 - responding to editor events
+- embedding the same builder contract inside an existing React product shell
 
 Responsibilities that should stay out of React:
 
@@ -46,3 +48,8 @@ Responsibilities that should stay out of React:
 - per-frame scene interaction bookkeeping
 
 If the React layer starts owning graph-stage interaction state, the product drifts away from its performance model.
+
+The recommended sequence is:
+
+1. validate the product contract with the `Web Component` path first
+2. adopt the React wrapper when React is the host-shell requirement, not the reason the editor exists
