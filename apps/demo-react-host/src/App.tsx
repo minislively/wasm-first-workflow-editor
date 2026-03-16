@@ -11,12 +11,12 @@ function App() {
     <main className="page">
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">react host support</p>
-          <h1>Use React when your product shell already lives there.</h1>
+          <p className="eyebrow">react host demo</p>
+          <h1>Use React as the host shell, not as the graph engine.</h1>
           <p className="lede">
-            This is the secondary integration path. The wrapper stays thin and
-            delegates the interactive stage to the same underlying custom
-            element, so React can host the builder without becoming the hot path.
+            The wrapper stays thin and delegates the interactive stage to the same
+            underlying custom element. That keeps the adoption path pleasant
+            without turning React into the hot path.
           </p>
         </div>
         <div className="host-panel">
