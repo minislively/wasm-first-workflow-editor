@@ -45,7 +45,7 @@ app.innerHTML = `
       <p class="eyebrow">Product Demo</p>
       <h1>Production Agent Builder</h1>
       <p class="mission-copy">
-        내 서비스에 바로 붙일 수 있는 빌더를 지금 바로 만져봅니다.
+        A representative builder shell your team can drop into a product and evaluate immediately.
       </p>
     </section>
     <section class="surface-shell">
@@ -55,10 +55,10 @@ app.innerHTML = `
             <div class="builder-banner">
               <div class="builder-banner-copy">
                 <div class="panel-label">Live Canvas</div>
-                <strong>노드를 직접 보고 움직이는 프로덕션 빌더 화면</strong>
+                <strong>See the stage, inspect each step, and tune the starter flow in place.</strong>
               </div>
               <div class="builder-banner-meta">
-                <p>제품처럼 보고, 바로 조작합니다.</p>
+                <p>The product-facing builder surface stays interactive without turning into a lab console.</p>
               </div>
               <div class="builder-banner-controls">
                 <label class="template-picker">
@@ -84,9 +84,9 @@ app.innerHTML = `
         <aside class="config-sidebar">
           <section class="panel-card config-card">
             <div class="panel-label">Node Inspector</div>
-            <strong data-role="config-title">Open a builder step</strong>
+            <strong data-role="config-title">Select a builder step</strong>
             <p class="panel-copy" data-role="config-copy">
-              선택한 노드를 여기서 바로 조정합니다.
+              Adjust the selected step from the host-owned side panel.
             </p>
             <div class="config-form" data-role="config-form"></div>
             <div class="runtime-card">
@@ -327,8 +327,8 @@ function renderPanels() {
   runtimeCopy!.textContent = runtimeState.detail
 
   if (!activeNode) {
-    configTitle!.textContent = 'Open a builder step'
-    configCopy!.textContent = '캔버스에서 선택한 노드를 여기서 조정합니다.'
+    configTitle!.textContent = 'Select a builder step'
+    configCopy!.textContent = 'Choose a step on the stage to review and adjust it here.'
     configForm!.innerHTML = ''
   } else {
     activeNodeId = activeNode.id
