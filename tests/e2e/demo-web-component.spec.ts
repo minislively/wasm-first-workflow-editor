@@ -20,13 +20,13 @@ test.describe('product demo web component surface', () => {
   test('renders the builder-first shell for the starter flow', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText('Product Demo Playground')).toBeVisible()
+    await expect(page.getByText('Production Agent Builder')).toBeVisible()
     await expect(
-      page.getByText('캔버스에서 바로 에이전트 빌더를 체험합니다.'),
+      page.getByText('내 서비스에 바로 붙일 수 있는 빌더를 지금 바로 만져봅니다.'),
     ).toBeVisible()
     await expect(page.getByText('Node Inspector', { exact: true })).toBeVisible()
     await expect(page.getByText('Starter template')).toBeVisible()
-    await expect(page.getByText('노드를 직접 보고 움직이는 빌더 화면')).toBeVisible()
+    await expect(page.getByText('노드를 직접 보고 움직이는 프로덕션 빌더 화면')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
     await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
     await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)
@@ -53,20 +53,19 @@ test.describe('product demo web component surface', () => {
     const runtimeCopy = page.locator('[data-role="runtime-copy"]')
 
     await expect(runtimeTitle).not.toHaveText('Booting editor runtime...')
-    await expect(runtimeCopy).toContainText(/Kernel /)
-    await expect(runtimeCopy).toContainText(/fallback/i)
+    await expect(runtimeCopy).toContainText(/canvas2d|webgl/i)
+    await expect(runtimeCopy).toContainText(/fallback|rust-wasm|typescript-fallback/i)
   })
 
-  test('opens a builder step in the side panel from the flow map', async ({ page }) => {
+  test('opens a builder step in the side panel from the canvas selection flow', async ({ page }) => {
     await page.goto('/')
 
-    await page.locator('[data-flow-node="research"]').click()
+    await page.locator('workflow-editor').locator('canvas').click({
+      position: { x: 450, y: 520 },
+    })
 
     await expect(page.locator('[data-role="config-title"]')).toContainText(
-      'Knowledge lookup',
-    )
-    await expect(page.locator('[data-role="config-copy"]')).toContainText(
-      'API-backed lookup stays template-first',
+      'Webhook intake',
     )
   })
 
@@ -89,7 +88,6 @@ test.describe('product demo web component surface', () => {
       .locator('select[data-config-control="preset"][data-node-id="trigger"]')
       .selectOption('trigger-alert')
 
-    await expect(page.locator('[data-flow-node="trigger"]')).toContainText('Alert monitor')
     await expect(page.locator('[data-role="config-title"]')).toContainText('Alert monitor')
   })
 
@@ -103,7 +101,6 @@ test.describe('product demo web component surface', () => {
     await expect(page.locator('[data-role="template-summary"]')).toContainText(
       'Ops incident',
     )
-    await expect(page.locator('[data-role="flow-map"]')).toContainText('Alert monitor')
   })
 
   test('adds the supported follow-up action through constrained controls', async ({ page }) => {
@@ -111,7 +108,8 @@ test.describe('product demo web component surface', () => {
 
     await page.getByRole('button', { name: 'Add follow-up action' }).click()
 
-    await expect(page.locator('[data-flow-node="action"]')).toContainText('Slack summary')
+    await expect(page.locator('workflow-editor')).toContainText('6n · 6e')
+    await expect(page.getByText('1/3')).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Remove follow-up action' }),
     ).toBeVisible()
@@ -123,8 +121,7 @@ test.describe('product demo web component surface', () => {
     await page.getByRole('button', { name: 'Add follow-up action' }).click()
     await page.getByRole('button', { name: 'Add follow-up action' }).click()
 
-    await expect(page.locator('[data-flow-node="action"]')).toContainText('Slack summary')
-    await expect(page.locator('[data-flow-node="action-2"]')).toContainText('Slack summary')
+    await expect(page.locator('workflow-editor')).toContainText('7n · 7e')
     await expect(page.getByText('2/3')).toBeVisible()
   })
 
@@ -133,7 +130,6 @@ test.describe('product demo web component surface', () => {
 
     await page.getByRole('button', { name: 'Remove approval gate' }).click()
 
-    await expect(page.locator('[data-flow-node="review"]')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Add approval gate' })).toBeVisible()
   })
 })

@@ -28,8 +28,7 @@ body {
 .mission-strip,
 .surface-shell,
 .panel-card,
-.control-strip,
-.flow-map-strip {
+.control-strip {
   border: 1px solid rgba(71, 85, 105, 0.42);
   background: rgba(8, 15, 28, 0.82);
   box-shadow: 0 20px 48px rgba(2, 6, 23, 0.28);
@@ -83,8 +82,7 @@ h1 {
 }
 
 .panel-card,
-.control-strip,
-.flow-map-strip {
+.control-strip {
   border-radius: 18px;
   padding: 8px 10px;
 }
@@ -107,7 +105,7 @@ h1 {
 .toggle-card p,
 .selection-item span,
 .selection-empty,
-.flow-card span {
+.flow-chip span {
   color: #9fb4cf;
   line-height: 1.22;
   font-size: 0.84rem;
@@ -143,8 +141,6 @@ h1 {
 }
 
 .template-summary,
-.selection-item,
-.selection-empty,
 .toggle-card,
 .flow-card,
 .config-note {
@@ -153,8 +149,6 @@ h1 {
 }
 
 .template-summary,
-.selection-item,
-.selection-empty,
 .config-note {
   border-radius: 16px;
   padding: 8px 10px;
@@ -166,8 +160,7 @@ h1 {
 }
 
 .optional-node-controls,
-.flow-map,
-.selection-list {
+.flow-map {
   display: grid;
   gap: 4px;
 }
@@ -218,33 +211,27 @@ h1 {
   gap: 1px;
 }
 
-.flow-card {
+.flow-map {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.flow-chip {
   width: 100%;
   padding: 7px 9px;
   text-align: left;
   cursor: pointer;
-  display: grid;
-  gap: 2px;
+  min-height: 0;
+  border: 1px solid rgba(71, 85, 105, 0.32);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.74);
 }
 
-.flow-card strong {
-  margin-bottom: 0;
-  font-size: 0.88rem;
-}
-
-.flow-card-slot,
-.flow-card-meta {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.flow-card.is-active {
+.flow-chip.is-active {
   border-color: rgba(45, 212, 191, 0.9);
   box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.32);
 }
 
-.flow-card.is-stage-selected {
+.flow-chip.is-stage-selected {
   background:
     linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(15, 23, 42, 0.8)),
     rgba(15, 23, 42, 0.74);
@@ -353,14 +340,13 @@ h1 {
     grid-template-columns: 1fr;
   }
 
+  .flow-map {
+    grid-template-columns: 1fr;
+  }
+
   .surface-shell,
   .mission-strip,
   .editor-shell {
     border-radius: 20px;
-  }
-
-  .builder-banner {
-    flex-direction: column;
-    align-items: start;
   }
 }

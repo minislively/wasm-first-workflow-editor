@@ -43,9 +43,9 @@ app.innerHTML = `
   <main class="page">
     <section class="mission-strip">
       <p class="eyebrow">Product Demo</p>
-      <h1>Product Demo Playground</h1>
+      <h1>Production Agent Builder</h1>
       <p class="mission-copy">
-        캔버스에서 바로 에이전트 빌더를 체험합니다.
+        내 서비스에 바로 붙일 수 있는 빌더를 지금 바로 만져봅니다.
       </p>
     </section>
     <section class="surface-shell">
@@ -55,10 +55,10 @@ app.innerHTML = `
             <div class="builder-banner">
               <div class="builder-banner-copy">
                 <div class="panel-label">Live Canvas</div>
-                <strong>노드를 직접 보고 움직이는 빌더 화면</strong>
+                <strong>노드를 직접 보고 움직이는 프로덕션 빌더 화면</strong>
               </div>
               <div class="builder-banner-meta">
-                <p>Drag, pan, zoom, selection을 바로 확인합니다.</p>
+                <p>제품처럼 보고, 바로 조작합니다.</p>
               </div>
               <div class="builder-banner-controls">
                 <label class="template-picker">
@@ -79,13 +79,6 @@ app.innerHTML = `
           </section>
           <section class="control-strip">
             <div class="template-summary" data-role="template-summary"></div>
-            <div class="flow-map-strip">
-              <div class="flow-map-label">
-                <div class="panel-label">Flow map</div>
-                <span>빠른 step 이동</span>
-              </div>
-              <div class="flow-map" data-role="flow-map"></div>
-            </div>
           </section>
         </section>
         <aside class="config-sidebar">
@@ -103,10 +96,6 @@ app.innerHTML = `
                 Waiting for the custom element to report backend, kernel, and fallback state.
               </p>
             </div>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Stage Selection</div>
-            <div class="selection-list" data-role="selection-list"></div>
           </section>
         </aside>
       </div>
@@ -255,14 +244,12 @@ function renderPanels() {
   const runtimeTitle = document.querySelector<HTMLElement>('[data-role="runtime-title"]')
   const runtimeCopy = document.querySelector<HTMLElement>('[data-role="runtime-copy"]')
   const templateSummary = document.querySelector<HTMLElement>('[data-role="template-summary"]')
-  const flowMap = document.querySelector<HTMLElement>('[data-role="flow-map"]')
   const optionalNodeControls = document.querySelector<HTMLElement>(
     '[data-role="optional-node-controls"]',
   )
   const configTitle = document.querySelector<HTMLElement>('[data-role="config-title"]')
   const configCopy = document.querySelector<HTMLElement>('[data-role="config-copy"]')
   const configForm = document.querySelector<HTMLElement>('[data-role="config-form"]')
-  const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
   const builderNodes = getProductDemoBuilderNodes(currentGraph)
   const activeNode = builderNodes.find((node) => node.id === activeNodeId) ?? builderNodes[0]
   const template = getProductDemoTemplateSummary(currentGraph)
@@ -277,10 +264,9 @@ function renderPanels() {
           title: diagnostics.fallbackReason
             ? `Fallback active on ${diagnostics.backend}`
             : `${diagnostics.backend} runtime is active`,
-          detail: [
-            `Kernel ${diagnostics.kernelSource}.`,
-            diagnostics.fallbackReason ?? 'No fallback reported.',
-          ].join(' '),
+          detail: diagnostics.fallbackReason
+            ? `${diagnostics.backend} / ${diagnostics.kernelSource} · ${diagnostics.fallbackReason}`
+            : `${diagnostics.backend} / ${diagnostics.kernelSource}`,
         }
 
   document
@@ -293,24 +279,6 @@ function renderPanels() {
     <strong>${template.label}</strong>
     <p>${template.summary}</p>
   `
-
-  flowMap!.innerHTML = builderNodes
-    .map((node) => {
-      const isStageSelected = selection.some((item) => item.id === node.id)
-
-      return `
-        <button
-          class="flow-chip${node.id === activeNode?.id ? ' is-active' : ''}${
-            isStageSelected ? ' is-stage-selected' : ''
-          }"
-          data-flow-node="${node.id}"
-          type="button"
-        >
-          <span>${node.currentTitle}</span>
-        </button>
-      `
-    })
-    .join('')
 
   optionalNodeControls!.innerHTML = getProductDemoOptionalNodeOptions(currentGraph)
     .map(
@@ -360,8 +328,7 @@ function renderPanels() {
 
   if (!activeNode) {
     configTitle!.textContent = 'Open a builder step'
-    configCopy!.textContent =
-      'Choose a node from the stage or flow map to edit its trusted builder configuration.'
+    configCopy!.textContent = '캔버스에서 선택한 노드를 여기서 조정합니다.'
     configForm!.innerHTML = ''
   } else {
     activeNodeId = activeNode.id
@@ -400,21 +367,6 @@ function renderPanels() {
       </div>
     `
   }
-
-  selectionList!.innerHTML =
-    selection.length === 0
-      ? '<div class="selection-empty">No stage selection yet. Drag, pan, zoom, and click a node to mirror engine-owned selection here.</div>'
-      : selection
-          .map(
-            (item) => `
-              <article class="selection-item">
-                <strong>${item.title}</strong>
-                <span>${item.type}</span>
-                <span>Status: ${item.status}</span>
-              </article>
-            `,
-          )
-          .join('')
 }
 
 async function commitGraph(nextGraph: GraphDocument) {
