@@ -45,7 +45,7 @@ app.innerHTML = `
       <p class="eyebrow">Product Demo</p>
       <h1>Product Demo Playground</h1>
       <p class="mission-copy">
-        팀이 바로 도입할 수 있는 대표 에이전트 빌더 화면을 캔버스에서 확인합니다.
+        캔버스에서 바로 에이전트 빌더를 체험합니다.
       </p>
     </section>
     <section class="surface-shell">
@@ -55,10 +55,10 @@ app.innerHTML = `
             <div class="builder-banner">
               <div class="builder-banner-copy">
                 <div class="panel-label">Live Canvas</div>
-                <strong>제품 대표 화면으로 쓰는 빌더 캔버스</strong>
+                <strong>노드를 직접 보고 움직이는 빌더 화면</strong>
               </div>
               <div class="builder-banner-meta">
-                <p>Drag, pan, zoom, selection을 stage에서 바로 확인합니다.</p>
+                <p>Drag, pan, zoom, selection을 바로 확인합니다.</p>
               </div>
               <div class="builder-banner-controls">
                 <label class="template-picker">
@@ -82,7 +82,7 @@ app.innerHTML = `
             <div class="flow-map-strip">
               <div class="flow-map-label">
                 <div class="panel-label">Flow map</div>
-                <span>필요할 때만 step 이동</span>
+                <span>빠른 step 이동</span>
               </div>
               <div class="flow-map" data-role="flow-map"></div>
             </div>
@@ -93,7 +93,7 @@ app.innerHTML = `
             <div class="panel-label">Node Inspector</div>
             <strong data-role="config-title">Open a builder step</strong>
             <p class="panel-copy" data-role="config-copy">
-              캔버스에서 선택한 노드를 여기서 조정합니다.
+              선택한 노드를 여기서 바로 조정합니다.
             </p>
             <div class="config-form" data-role="config-form"></div>
             <div class="runtime-card">
@@ -292,10 +292,6 @@ function renderPanels() {
   templateSummary!.innerHTML = `
     <strong>${template.label}</strong>
     <p>${template.summary}</p>
-    <p>
-      This builder shell keeps template-first onboarding visible without
-      pretending the whole surface is unrestricted graph authoring.
-    </p>
   `
 
   flowMap!.innerHTML = builderNodes
@@ -304,16 +300,13 @@ function renderPanels() {
 
       return `
         <button
-          class="flow-card${node.id === activeNode?.id ? ' is-active' : ''}${
+          class="flow-chip${node.id === activeNode?.id ? ' is-active' : ''}${
             isStageSelected ? ' is-stage-selected' : ''
           }"
           data-flow-node="${node.id}"
           type="button"
         >
-          <span class="flow-card-slot">${node.slotLabel}</span>
-          <strong>${node.currentTitle}</strong>
-          <span>${node.currentSubtitle}</span>
-          <span class="flow-card-meta">${node.currentStatus} · ${node.family}</span>
+          <span>${node.currentTitle}</span>
         </button>
       `
     })
@@ -404,10 +397,6 @@ function renderPanels() {
       <div class="config-note">
         <strong>Current step</strong>
         <p>${activeNode.currentSubtitle}</p>
-        <p>
-          Shell-owned edits update the stage through the public editor contract.
-          Add or remove actions re-snap supported nodes into their constrained builder slots.
-        </p>
       </div>
     `
   }

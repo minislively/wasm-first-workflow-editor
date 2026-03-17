@@ -20,9 +20,9 @@ body {
 .page {
   width: min(1480px, calc(100vw - 32px));
   margin: 0 auto;
-  padding: 10px 0 24px;
+  padding: 8px 0 18px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .mission-strip,
@@ -39,7 +39,7 @@ body {
 .mission-strip,
 .surface-shell {
   border-radius: 22px;
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .eyebrow {
@@ -52,51 +52,51 @@ body {
 
 h1 {
   margin: 0;
-  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-size: clamp(1.35rem, 1.8vw, 1.8rem);
   line-height: 0.98;
 }
 
 .mission-copy {
-  margin: 6px 0 0;
-  max-width: 38ch;
+  margin: 3px 0 0;
+  max-width: 30ch;
   color: #9fb4cf;
-  line-height: 1.25;
-  font-size: 0.9rem;
+  line-height: 1.15;
+  font-size: 0.82rem;
 }
 
 .surface-shell {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .surface-layout {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(250px, 0.62fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 2.35fr) minmax(228px, 0.56fr);
+  gap: 6px;
   align-items: start;
 }
 
 .canvas-column,
 .config-sidebar {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .panel-card,
 .control-strip,
 .flow-map-strip {
   border-radius: 18px;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .panel-card strong {
   display: block;
-  margin-bottom: 6px;
-  font-size: 0.94rem;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
 }
 
 .panel-label {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-size: 12px;
   color: #7dd3fc;
   letter-spacing: 0.12em;
@@ -109,21 +109,21 @@ h1 {
 .selection-empty,
 .flow-card span {
   color: #9fb4cf;
-  line-height: 1.32;
-  font-size: 0.9rem;
+  line-height: 1.22;
+  font-size: 0.84rem;
 }
 
 .template-picker,
 .config-form {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .template-picker span,
 .config-form label span,
 .flow-map-label span {
   color: #9fb4cf;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .template-picker select,
@@ -139,7 +139,7 @@ h1 {
 
 .template-picker select,
 .config-form select {
-  padding: 8px 10px;
+  padding: 7px 9px;
 }
 
 .template-summary,
@@ -157,19 +157,19 @@ h1 {
 .selection-empty,
 .config-note {
   border-radius: 16px;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .template-summary {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .optional-node-controls,
 .flow-map,
 .selection-list {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .optional-node-controls {
@@ -178,9 +178,9 @@ h1 {
 
 .toggle-card {
   border-radius: 16px;
-  padding: 8px;
+  padding: 7px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .toggle-header {
@@ -199,12 +199,12 @@ h1 {
 
 .toggle-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .toggle-button {
-  padding: 8px 10px;
+  padding: 7px 9px;
   cursor: pointer;
 }
 
@@ -213,23 +213,23 @@ h1 {
 }
 
 .flow-map-label {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .flow-card {
   width: 100%;
-  padding: 8px 10px;
+  padding: 7px 9px;
   text-align: left;
   cursor: pointer;
   display: grid;
-  gap: 3px;
+  gap: 2px;
 }
 
 .flow-card strong {
   margin-bottom: 0;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .flow-card-slot,
@@ -255,7 +255,7 @@ h1 {
   overflow: hidden;
   display: grid;
   gap: 0;
-  min-height: min(84vh, 1040px);
+  min-height: min(86vh, 1080px);
   box-shadow: 0 34px 72px rgba(2, 6, 23, 0.42);
 }
 
@@ -263,8 +263,8 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.55fr) minmax(320px, 0.9fr);
   align-items: start;
-  gap: 12px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 7px 10px;
   border: 1px solid rgba(71, 85, 105, 0.32);
   border-bottom: none;
   border-radius: 24px 24px 0 0;
@@ -272,12 +272,12 @@ h1 {
 }
 
 .builder-banner-copy {
-  max-width: 28ch;
+  max-width: 24ch;
 }
 
 .builder-banner-controls {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
 }
 
@@ -288,20 +288,20 @@ h1 {
 .builder-banner p {
   margin: 0;
   color: #9fb4cf;
-  max-width: 22ch;
-  line-height: 1.28;
-  font-size: 0.88rem;
+  max-width: 18ch;
+  line-height: 1.18;
+  font-size: 0.82rem;
 }
 
 .editor-shell #mount {
-  min-height: clamp(820px, 84vh, 1040px);
+  min-height: clamp(860px, 86vh, 1100px);
   background: rgba(4, 9, 19, 0.72);
 }
 
 .config-card {
   display: grid;
-  gap: 8px;
-  min-height: 200px;
+  gap: 6px;
+  min-height: 180px;
 }
 
 .config-form {
@@ -314,9 +314,9 @@ h1 {
 
 .runtime-card {
   display: grid;
-  gap: 4px;
-  margin-top: 4px;
-  padding-top: 6px;
+  gap: 3px;
+  margin-top: 2px;
+  padding-top: 5px;
   border-top: 1px solid rgba(71, 85, 105, 0.28);
 }
 
