@@ -25,11 +25,34 @@ export type WorkflowEdge = {
   target: string
 }
 
+export type SupportTier = 'guaranteed' | 'supported' | 'experimental'
+
+export type WorkflowBuilderStateMetadata = {
+  templateKey: string
+  optionalNodes: {
+    review: boolean
+  }
+  actionCount: number
+  presetKeys: Partial<Record<string, string>>
+  statusOverrides: Partial<Record<string, WorkflowNode['status']>>
+}
+
+export type WorkflowDocumentMetadata = {
+  name?: string
+  fixture?: string
+  templateKey?: string
+  templateSummary?: string
+  supportTier?: SupportTier
+  runtimeExpectation?: string
+  builderState?: WorkflowBuilderStateMetadata
+  extensions?: Record<string, unknown>
+}
+
 export type GraphDocument = {
   version: string
   nodes: WorkflowNode[]
   edges: WorkflowEdge[]
-  metadata?: Record<string, unknown>
+  metadata?: WorkflowDocumentMetadata
 }
 
 export type ViewportState = {
@@ -81,6 +104,7 @@ export type RuntimePreferences = {
 
 export type SceneSnapshot = {
   graph: GraphDocument
+  nodeById: ReadonlyMap<string, WorkflowNode>
   viewport: ViewportState
   selectionIds: string[]
   size: CanvasSize
@@ -138,4 +162,59 @@ export type WorkflowEditorOptions = {
   theme?: Partial<ThemeTokens>
   preferences?: Partial<RuntimePreferences>
   shellMode?: 'default' | 'stage-only'
+}
+
+export function isWorkflowNodeStatus(
+  value: unknown,
+): value is WorkflowNode['status'] {
+  return value === 'idle' || value === 'ready' || value === 'running'
+}
+
+export function isWorkflowBuilderStateMetadata(
+  value: unknown,
+): value is WorkflowBuilderStateMetadata {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    typeof value.templateKey === 'string' &&
+    isRecord(value.optionalNodes) &&
+    typeof value.optionalNodes.review === 'boolean' &&
+    typeof value.actionCount === 'number' &&
+    isPartialStringRecord(value.presetKeys) &&
+    isPartialWorkflowStatusRecord(value.statusOverrides)
+  )
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isPartialStringRecord(
+  value: unknown,
+): value is Partial<Record<string, string>> {
+  if (value === undefined) {
+    return true
+  }
+
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return Object.values(value).every((item) => item === undefined || typeof item === 'string')
+}
+
+function isPartialWorkflowStatusRecord(
+  value: unknown,
+): value is Partial<Record<string, WorkflowNode['status']>> {
+  if (value === undefined) {
+    return true
+  }
+
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return Object.values(value).every((item) => item === undefined || isWorkflowNodeStatus(item))
 }

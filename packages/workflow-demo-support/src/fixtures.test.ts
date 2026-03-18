@@ -9,7 +9,8 @@ import {
   getProductDemoBuilderNodes,
   getProductDemoGraph,
   getProductDemoOptionalNodeOptions,
-  isDegradedFixture,
+  getProductDemoTemplateSummary,
+  isSupportedTierFixture,
   removeProductDemoOptionalNode,
   resolvePerformanceLabEditability,
   setProductDemoNodePreset,
@@ -47,13 +48,13 @@ describe('workflow-demo-support fixtures', () => {
     })
   })
 
-  it('marks 500 and 1000 as degraded-by-default viewer tiers', () => {
+  it('marks 500 and 1000 as Supported tiers with constrained defaults', () => {
     expect(getFixtureInteractionContract('500')).toMatchObject({
-      tier: 'degraded-viewer',
+      tier: 'supported',
       defaultEditability: 'read-only',
     })
     expect(getFixtureInteractionContract('1000')).toMatchObject({
-      tier: 'degraded-viewer',
+      tier: 'supported',
       defaultEditability: 'read-only',
     })
   })
@@ -62,8 +63,17 @@ describe('workflow-demo-support fixtures', () => {
     const graph = getProductDemoGraph('sales-escalation')
 
     expect(graph.metadata?.templateKey).toBe('sales-escalation')
+    expect(graph.metadata?.supportTier).toBe('guaranteed')
+    expect(graph.metadata?.runtimeExpectation).toContain('Guaranteed')
     expect(graph.nodes.find((node) => node.id === 'publish')?.title).toBe('Send follow-up')
     expect(graph.nodes).toHaveLength(5)
+  })
+
+  it('promotes template summary semantics into shared metadata fields', () => {
+    expect(getProductDemoTemplateSummary(getProductDemoGraph('ops-incident'))).toMatchObject({
+      key: 'ops-incident',
+      supportTier: 'guaranteed',
+    })
   })
 
   it('lists the builder seam for the default starter flow', () => {
@@ -160,10 +170,21 @@ describe('workflow-demo-support fixtures', () => {
     expect(getProductDemoBuilderNodes(graph).map((node) => node.id)).not.toContain('review')
   })
 
-  it('requires an explicit override to enable editing on degraded tiers', () => {
-    expect(isDegradedFixture('basic')).toBe(false)
-    expect(isDegradedFixture('500')).toBe(true)
+  it('requires an explicit override to enable editing on Supported tiers', () => {
+    expect(isSupportedTierFixture('basic')).toBe(false)
+    expect(isSupportedTierFixture('500')).toBe(true)
     expect(resolvePerformanceLabEditability('500', 'editable', false)).toBe('read-only')
     expect(resolvePerformanceLabEditability('500', 'editable', true)).toBe('editable')
+  })
+
+  it('captures fixture support tier metadata in benchmark graphs', () => {
+    expect(getFixtureGraph('100').metadata).toMatchObject({
+      fixture: '100-nodes',
+      supportTier: 'guaranteed',
+    })
+    expect(getFixtureGraph('500').metadata).toMatchObject({
+      fixture: '500-nodes',
+      supportTier: 'supported',
+    })
   })
 })

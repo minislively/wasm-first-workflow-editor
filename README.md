@@ -25,6 +25,48 @@ Most node editors make it hard to ship a branded builder without letting shell c
 - the graph stage is treated like a scene engine while the host shell stays open for branding and integration
 - the primary adoption path is `Web Component`, not framework lock-in
 
+## Open source boundary
+
+This repository is intended to work like an **open-core builder foundation**, closer to a reusable engine than to a single hosted SaaS product.
+
+### What is open source here
+
+The open-source contract is the reusable builder foundation:
+
+- graph/runtime packages
+- WASM kernel seam
+- worker/runtime event contract
+- renderers
+- `Web Component` and `React` adapters
+- reference demo apps that show how the foundation behaves
+
+### What the demos mean
+
+The demos are **reference domains**, not the only product this repo can represent.
+
+- `Product Demo` shows one builder-shaped shell teams can adapt
+- `Performance Lab` shows one runtime-evaluation surface teams can inspect
+- template choices such as support / sales / ops are examples of how a domain can be expressed on top of the foundation
+
+That means adopters are expected to bring their own domain:
+
+- customer support
+- internal approvals
+- operations workflows
+- AI agent orchestration
+- other graph-driven builders
+
+### What is not claimed by the OSS boundary
+
+This repo does **not** currently claim to be a full managed product for:
+
+- hosted team collaboration
+- deployment control plane
+- template marketplace
+- enterprise operations/support workflow
+
+Those can exist later as product layers, but the repository itself is the reusable core plus reference surfaces.
+
 ## What ships in this baseline
 
 - Runnable `Product Demo` app on the primary `Web Component` path
@@ -58,7 +100,7 @@ Use `apps/performance-lab` when you want to verify the runtime behavior behind t
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
-- degraded-by-default heavy tiers with an explicit experimental-editing opt-in
+- Supported heavy tiers with an explicit Experimental-editing opt-in
 - syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
 - benchmark-oriented proof surface for the same editor contract
 
@@ -67,7 +109,7 @@ The lab is a proof surface, not the main product face:
 - visible controls should match actual runtime behavior
 - requested and active runtime state should stay side by side
 - heavier fixtures should be evaluated with explicit diagnostics, not implied maturity
-- current repo state keeps `100` as the default editable baseline and downgrades `500 / 1000` to degraded viewer mode by default
+- current repo state keeps `100` as the default Guaranteed editable baseline and keeps `500 / 1000` in the Supported read-only default by default
 
 Run it with:
 
@@ -84,7 +126,7 @@ Evaluation guidance:
 
 - compare `requested` and `active` runtime rows after changing renderer or kernel preferences
 - treat `Fallback visible` as a first-class result, not a hidden error
-- treat `500` and `1000` as navigation-first tiers unless you explicitly opt into experimental editing
+- treat `500` and `1000` as Supported navigation-first tiers unless you explicitly opt into Experimental editing
 - keep the public fixture promise bounded to `100 / 500 / 1000` until heavier scenarios are explicitly validated
 
 Recommended evaluation path:
@@ -92,7 +134,7 @@ Recommended evaluation path:
 1. Start in `Performance Lab` and confirm the current renderer, kernel source, and fallback state.
 2. Step through the public fixtures `100`, `500`, and `1000`.
 3. Compare `rendererPreference` and `kernelPreference` in `auto` versus forced modes.
-4. Confirm `500` and `1000` enter degraded read-only mode by default, then enable experimental editing only if you are intentionally probing beyond the trustworthy baseline.
+4. Confirm `500` and `1000` enter the Supported read-only default by default, then enable Experimental editing only if you are intentionally probing beyond the trustworthy baseline.
 5. Switch `editability` to `read-only` on lighter tiers if your target integration is a viewer rather than an editor.
 
 ## Public Reliability Contract
@@ -106,7 +148,7 @@ Current trustworthy baseline:
 
 - `basic`: product-oriented editable builder baseline
 - `100`: lab-oriented editable baseline for interaction smoke and diagnostics comparison
-- `500 / 1000`: public evaluation fixtures that default to degraded viewer mode unless a host explicitly opts into experimental editing
+- `500 / 1000`: public evaluation fixtures that default to the Supported read-only contract unless a host explicitly opts into Experimental editing
 
 Near-term usage guidance:
 
@@ -174,8 +216,8 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 
 - `basic`: product-oriented default graph
 - `100`: light lab fixture
-- `500`: degraded-by-default medium evaluation fixture
-- `1000`: degraded-by-default heavy public viewing fixture
+- `500`: Supported medium evaluation fixture with a read-only default
+- `1000`: Supported heavy public viewing fixture with a read-only default
 
 ## Package map
 
@@ -188,12 +230,13 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - `@minislively/workflow-editor-shell`: shell theme tokens and styling contract
 - `@minislively/workflow-element`: primary `Web Component` integration surface
 - `@minislively/workflow-react`: secondary React wrapper
-- `@minislively/workflow-demo-support`: shared fixtures and diagnostics helpers for demo apps
-- `@minislively/workflow-nodepack-basic`: starter graph fixture and node catalog
+- `@minislively/workflow-demo-support`: reference-domain fixtures, diagnostics helpers, and demo metadata
+- `@minislively/workflow-nodepack-basic`: minimal starter graph fixture and node catalog
 
 ## Docs
 
 - [Architecture](./docs/architecture/overview.md)
+- [Open source model](./docs/product/open-source-model.md)
 - [Public surface reliability](./docs/product/reliability.md)
 - [Web Component adoption](./docs/adoption/web-component.md)
 - [React host guidance](./docs/adoption/react-host.md)

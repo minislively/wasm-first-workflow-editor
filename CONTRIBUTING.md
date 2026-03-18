@@ -6,6 +6,8 @@
 - Keep shell flexibility out of scene rendering internals.
 - Prefer explicit package seams over convenience imports that blur ownership.
 - Preserve the `Web Component` primary path. React remains a secondary host surface.
+- Treat support / sales / ops flows as reference-domain examples, not as the only valid product domains.
+- Keep the OSS boundary focused on reusable foundation work; avoid baking hosted-product-only assumptions into shared packages.
 
 ## Local setup
 

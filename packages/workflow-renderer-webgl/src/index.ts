@@ -39,7 +39,7 @@ export function createWebGlRenderer(
   }
 
   const render = (scene: SceneSnapshot) => {
-    const { graph, viewport, selectionIds } = scene
+    const { graph, nodeById, viewport, selectionIds } = scene
     const width = canvas.width
     const height = canvas.height
 
@@ -53,8 +53,8 @@ export function createWebGlRenderer(
     const edgeColor = hexToRgba(theme.edge)
 
     graph.edges.forEach((edge) => {
-      const source = graph.nodes.find((node) => node.id === edge.source)
-      const target = graph.nodes.find((node) => node.id === edge.target)
+      const source = nodeById.get(edge.source)
+      const target = nodeById.get(edge.target)
 
       if (!source || !target) {
         return

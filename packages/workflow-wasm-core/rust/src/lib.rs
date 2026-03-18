@@ -24,16 +24,6 @@ pub fn wf_clamp_zoom(zoom: f64) -> f64 {
 }
 
 #[wasm_bindgen]
-pub fn wf_bounds_width(min_x: f64, max_x: f64) -> f64 {
-    max_x - min_x
-}
-
-#[wasm_bindgen]
-pub fn wf_bounds_height(min_y: f64, max_y: f64) -> f64 {
-    max_y - min_y
-}
-
-#[wasm_bindgen]
 pub fn wf_screen_to_world_x(screen_x: f64, viewport_x: f64, zoom: f64) -> f64 {
     screen_x / zoom + viewport_x
 }
@@ -95,8 +85,8 @@ pub fn compute_bounds(points: &[(f64, f64, f64, f64)]) -> Option<SceneBounds> {
 #[cfg(test)]
 mod tests {
     use super::{
-        compute_bounds, wf_bounds_height, wf_bounds_width, wf_clamp_zoom, wf_pan_viewport_x,
-        wf_screen_to_world_x, wf_zoom_viewport_x,
+        compute_bounds, wf_clamp_zoom, wf_pan_viewport_x, wf_screen_to_world_x,
+        wf_zoom_viewport_x,
     };
 
     #[test]
@@ -104,12 +94,6 @@ mod tests {
         assert_eq!(wf_clamp_zoom(0.2), 0.45);
         assert_eq!(wf_clamp_zoom(1.25), 1.25);
         assert_eq!(wf_clamp_zoom(4.0), 2.25);
-    }
-
-    #[test]
-    fn bounds_math_matches_expected_dimensions() {
-        assert_eq!(wf_bounds_width(-20.0, 80.0), 100.0);
-        assert_eq!(wf_bounds_height(12.0, 54.0), 42.0);
     }
 
     #[test]

@@ -11,6 +11,28 @@
 
 This baseline proves the package seams and runnable demo flow first. The `workflow-wasm-core` package now includes a real Rust crate entrypoint so the repository can grow into actual WASM kernels without reshaping package boundaries, while the initial interaction helpers remain in TypeScript so the repository can run immediately.
 
+## Current ownership split
+
+The non-UI core now follows a clearer ownership model:
+
+- `workflow-core`
+  - owns graph mutation helpers
+  - owns derived graph state such as node indexes, adjacency, and cached bounds/counts
+  - exposes query helpers that the worker and renderers can reuse without rebuilding the same structure repeatedly
+- `workflow-types`
+  - owns the shared persisted document contract
+  - keeps common product metadata typed while still leaving room for host-specific metadata through `metadata.extensions`
+- `workflow-wasm-core`
+  - owns numeric viewport/kernel helpers such as zoom, pan, and screen/world conversion
+  - stays responsible for the `rust-wasm` vs `typescript-fallback` kernel seam
+- `workflow-engine-worker`
+  - owns orchestration, runtime resolution, and event emission
+  - consumes derived graph state instead of recomputing scene-wide counts/bounds on every interaction path
+- renderers
+  - consume graph state prepared by core/worker rather than re-discovering edge endpoints through repeated full-array scans
+
+This keeps data ownership, numeric kernel ownership, and runtime/reporting ownership separate.
+
 ## Boundary rule
 
 - Shell owns branding, toolbar, inspector, and host layout.

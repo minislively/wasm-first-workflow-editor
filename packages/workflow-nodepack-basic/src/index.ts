@@ -5,6 +5,8 @@ export function createBasicDemoGraph(): GraphDocument {
     version: '0.1.0',
     metadata: {
       name: 'Agent builder demo',
+      supportTier: 'guaranteed',
+      runtimeExpectation: 'Guaranteed editable builder baseline',
     },
     nodes: [
       {

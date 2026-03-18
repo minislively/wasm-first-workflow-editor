@@ -25,16 +25,12 @@ describe('workflow-wasm-core', () => {
     })
 
     expect(kernel.source).toBe('typescript-fallback')
-    expect(kernel.boundsWidth(-10, 25)).toBe(35)
-    expect(kernel.boundsHeight(8, 20)).toBe(12)
     expect(clampZoomKernel(1.2)).toBe(1.2)
   })
 
   it('creates a wasm-backed kernel contract from complete module exports', () => {
     const kernel = createKernelFromModule({
       wf_clamp_zoom: (zoom) => zoom,
-      wf_bounds_width: (minX, maxX) => maxX - minX,
-      wf_bounds_height: (minY, maxY) => maxY - minY,
       wf_screen_to_world_x: (screenX, viewportX, zoom) => screenX / zoom + viewportX,
       wf_screen_to_world_y: (screenY, viewportY, zoom) => screenY / zoom + viewportY,
       wf_pan_viewport_x: (viewportX, deltaX, zoom) => viewportX - deltaX / zoom,
