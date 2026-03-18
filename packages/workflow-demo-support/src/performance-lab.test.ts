@@ -44,7 +44,7 @@ describe('workflow-demo-support performance lab summary', () => {
     expect(summary.fixtureContractLabel).toContain('Supported tier')
     expect(summary.effectiveEditability).toBe('read-only')
     expect(summary.capabilityTitle).toBe('Supported default is active')
-    expect(summary.supportedByDefault).toBe(true)
+    expect(summary.hasSupportedDefault).toBe(true)
     expect(summary.evaluationNotes).toContain(
       'Fallback surfaced: webgl unavailable; fell back to canvas2d',
     )

@@ -6,7 +6,7 @@ This repository treats `Product Demo` and `Performance Lab` as public surfaces, 
 The reliability rule is simple:
 
 - if a control or interaction is visible, the runtime behavior should match that promise
-- if a capability is degraded, experimental, or unavailable, the UI and docs should say so directly
+- if a capability is constrained, experimental, or unavailable, the UI and docs should say so directly
 
 ## Surface split
 

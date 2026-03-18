@@ -4,7 +4,7 @@ import type { DiagnosticsState } from './diagnostics'
 import {
   describeFixtureTier,
   getFixtureInteractionContract,
-  isSupportedTierFixture,
+  isSupportedDefaultFixture,
   resolvePerformanceLabEditability,
   type FixtureKey,
   type PerformanceLabState,
@@ -26,7 +26,7 @@ export type PerformanceLabSummary = {
   fallbackLabel: string
   capabilityTitle: string
   capabilityDetail: string
-  supportedByDefault: boolean
+  hasSupportedDefault: boolean
   evaluationNotes: string[]
 }
 
@@ -41,7 +41,7 @@ export function createPerformanceLabSummary(
     state.editability,
     state.allowExperimentalEditing,
   )
-  const supportedByDefault = isSupportedTierFixture(state.fixture)
+  const hasSupportedDefault = isSupportedDefaultFixture(state.fixture)
 
   return {
     renderer,
@@ -51,14 +51,14 @@ export function createPerformanceLabSummary(
     fixtureLabel: describeFixture(state.fixture),
     fixtureContractLabel: describeFixtureTier(state.fixture),
     fallbackLabel: diagnostics.fallbackReason ?? 'No fallback reported.',
-    capabilityTitle: getCapabilityTitle(supportedByDefault, state.allowExperimentalEditing),
+    capabilityTitle: getCapabilityTitle(hasSupportedDefault, state.allowExperimentalEditing),
     capabilityDetail: getCapabilityDetail(
       state.fixture,
       state.editability,
       effectiveEditability,
       state.allowExperimentalEditing,
     ),
-    supportedByDefault,
+    hasSupportedDefault,
     evaluationNotes: createEvaluationNotes(
       state,
       diagnostics,
@@ -166,9 +166,9 @@ function createEvaluationNotes(
     `Interaction mode: ${effectiveEditability === 'read-only' ? 'navigation-only' : 'editing enabled'}`,
   ]
 
-  if (isSupportedTierFixture(state.fixture) && !state.allowExperimentalEditing) {
+  if (isSupportedDefaultFixture(state.fixture) && !state.allowExperimentalEditing) {
     notes.push('Heavy fixture policy: read-only is enforced until experimental editing is explicitly enabled.')
-  } else if (isSupportedTierFixture(state.fixture) && state.allowExperimentalEditing) {
+  } else if (isSupportedDefaultFixture(state.fixture) && state.allowExperimentalEditing) {
     notes.push('Heavy fixture policy: experimental editing is explicitly enabled for this session.')
   }
 
@@ -207,10 +207,10 @@ export function describeFixture(fixture: FixtureKey) {
 }
 
 function getCapabilityTitle(
-  supportedByDefault: boolean,
+  hasSupportedDefault: boolean,
   allowExperimentalEditing: boolean,
 ) {
-  if (!supportedByDefault) {
+  if (!hasSupportedDefault) {
     return 'Guaranteed tier is active'
   }
 
@@ -225,7 +225,7 @@ function getCapabilityDetail(
   effectiveEditability: Editability,
   allowExperimentalEditing: boolean,
 ) {
-  if (!isSupportedTierFixture(fixture)) {
+  if (!isSupportedDefaultFixture(fixture)) {
     return 'This public tier keeps editing available by default, so the visible controls match the Guaranteed baseline promise.'
   }
 

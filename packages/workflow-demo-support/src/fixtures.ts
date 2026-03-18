@@ -735,7 +735,7 @@ export function getProductDemoTemplateSummary(
   }
 }
 
-export function isSupportedTierFixture(fixture: FixtureKey): boolean {
+export function isSupportedDefaultFixture(fixture: FixtureKey): boolean {
   return getFixtureInteractionContract(fixture).tier === 'supported'
 }
 
@@ -744,7 +744,7 @@ export function resolvePerformanceLabEditability(
   requestedEditability: Editability,
   allowExperimentalEditing: boolean,
 ): Editability {
-  if (isSupportedTierFixture(fixture) && !allowExperimentalEditing) {
+  if (isSupportedDefaultFixture(fixture) && !allowExperimentalEditing) {
     return 'read-only'
   }
 
