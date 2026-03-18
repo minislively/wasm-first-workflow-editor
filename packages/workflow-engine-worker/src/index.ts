@@ -1,8 +1,11 @@
 import {
+  createGraphDerivedState,
   defaultViewport,
-  findNodeAt,
-  getSelectionSummary,
+  findNodeAtFromDerivedState,
+  getSelectionSummaryFromIndex,
   moveNode,
+  updateDerivedStateForNodeMove,
+  type GraphDerivedState,
 } from '@minislively/workflow-core'
 import { createCanvasRenderer } from '@minislively/workflow-renderer-canvas'
 import { createWebGlRenderer } from '@minislively/workflow-renderer-webgl'
@@ -18,7 +21,6 @@ import type {
   ViewportState,
 } from '@minislively/workflow-types'
 import {
-  computeSceneBounds,
   getFallbackKernel,
   loadWasmKernel,
   panViewportState,
@@ -47,6 +49,7 @@ export class EngineController {
   private readonly canvas: HTMLCanvasElement | OffscreenCanvas
   private readonly emit: (event: EngineEvent) => void
   private graph: GraphDocument
+  private derivedState: GraphDerivedState
   private viewport: ViewportState = { ...defaultViewport }
   private selectionIds: string[] = []
   private size: CanvasSize = { width: 1280, height: 720, dpr: 1 }
@@ -75,6 +78,7 @@ export class EngineController {
       nodes: [],
       edges: [],
     }
+    this.derivedState = createGraphDerivedState(this.graph)
     this.theme = mergeTheme(initialTheme)
   }
 
@@ -82,6 +86,7 @@ export class EngineController {
     switch (command.type) {
       case 'init':
         this.graph = command.graph
+        this.derivedState = createGraphDerivedState(this.graph)
         this.theme = mergeTheme(command.theme)
         this.size = command.size
         this.preferences = {
@@ -96,8 +101,9 @@ export class EngineController {
         break
       case 'load':
         this.graph = command.graph
+        this.derivedState = createGraphDerivedState(this.graph)
         this.selectionIds = this.selectionIds.filter((selectionId) =>
-          this.graph.nodes.some((node) => node.id === selectionId),
+          this.derivedState.nodeById.has(selectionId),
         )
         this.emitSelection()
         this.render(true)
@@ -239,7 +245,7 @@ export class EngineController {
       this.viewport,
       this.wasmKernel,
     )
-    const node = findNodeAt(this.graph, worldPoint)
+    const node = findNodeAtFromDerivedState(this.derivedState, worldPoint)
 
     if (node) {
       this.selectionIds = [node.id]
@@ -285,22 +291,43 @@ export class EngineController {
       return
     }
 
+    const dragState = this.dragState
+
     const worldPoint = screenToWorldPoint(
       screenPoint,
       this.viewport,
       this.wasmKernel,
     )
-    this.graph = moveNode(this.graph, this.dragState.nodeId, {
-      x: worldPoint.x - this.dragState.pointerOffset.x,
-      y: worldPoint.y - this.dragState.pointerOffset.y,
+    const previousNode = this.derivedState.nodeById.get(dragState.nodeId)
+    const nextNode = previousNode
+      ? {
+          ...previousNode,
+          position: {
+            x: worldPoint.x - dragState.pointerOffset.x,
+            y: worldPoint.y - dragState.pointerOffset.y,
+          },
+        }
+      : undefined
+    this.graph = moveNode(this.graph, dragState.nodeId, {
+      x: worldPoint.x - dragState.pointerOffset.x,
+      y: worldPoint.y - dragState.pointerOffset.y,
     })
+    this.derivedState = updateDerivedStateForNodeMove(
+      this.graph,
+      this.derivedState,
+      previousNode,
+      nextNode,
+    )
     this.render(true)
   }
 
   private emitSelection() {
     this.emit({
       type: 'selection',
-      selected: getSelectionSummary(this.graph, this.selectionIds),
+      selected: getSelectionSummaryFromIndex(
+        this.derivedState.nodeById,
+        this.selectionIds,
+      ),
     })
   }
 
@@ -317,6 +344,7 @@ export class EngineController {
   private render(emitChange: boolean) {
     this.renderer?.render({
       graph: this.graph,
+      nodeById: this.derivedState.nodeById,
       viewport: this.viewport,
       selectionIds: this.selectionIds,
       size: this.size,
@@ -328,24 +356,21 @@ export class EngineController {
         graph: this.graph,
       })
     }
-    const bounds = this.graph.nodes.length > 0 ? computeSceneBounds(this.graph) : undefined
     this.emit({
       type: 'stats',
       backend: this.backend,
       kernelSource: this.wasmKernel.source,
-      nodeCount: this.graph.nodes.length,
-      edgeCount: this.graph.edges.length,
+      nodeCount: this.derivedState.nodeCount,
+      edgeCount: this.derivedState.edgeCount,
       zoom: this.viewport.zoom,
       preferences: this.preferences,
       fallbackReason: this.getFallbackReason(),
     })
 
+    const bounds = this.derivedState.bounds
     if (!bounds) {
       return
     }
-
-    this.wasmKernel.boundsWidth(bounds.minX, bounds.maxX)
-    this.wasmKernel.boundsHeight(bounds.minY, bounds.maxY)
   }
 
   private getFallbackReason() {

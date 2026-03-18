@@ -6,6 +6,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@minislively/workflow-types": "workspace:*"
+    "@minislively/workflow-types": "workspace:*",
+    "@minislively/workflow-wasm-core": "workspace:*"
   }
 }

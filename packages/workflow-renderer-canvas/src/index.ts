@@ -31,7 +31,7 @@ export function createCanvasRenderer(
   }
 
   const render = (scene: SceneSnapshot) => {
-    const { viewport, graph, selectionIds, size } = scene
+    const { viewport, graph, nodeById, selectionIds, size } = scene
 
     context.clearRect(0, 0, size.width, size.height)
     context.fillStyle = theme.canvasBg
@@ -64,8 +64,8 @@ export function createCanvasRenderer(
     context.strokeStyle = theme.edge
     context.lineWidth = 2 / viewport.zoom
     graph.edges.forEach((edge) => {
-      const source = graph.nodes.find((node) => node.id === edge.source)
-      const target = graph.nodes.find((node) => node.id === edge.target)
+      const source = nodeById.get(edge.source)
+      const target = nodeById.get(edge.target)
 
       if (!source || !target) {
         return

@@ -6,7 +6,13 @@ import type {
   Point,
   RendererPreference,
   Size,
+  SupportTier,
   WorkflowNode,
+  WorkflowBuilderStateMetadata,
+} from '@minislively/workflow-types'
+import {
+  isWorkflowBuilderStateMetadata,
+  isWorkflowNodeStatus,
 } from '@minislively/workflow-types'
 
 export type FixtureKey = 'basic' | '100' | '500' | '1000'
@@ -20,7 +26,7 @@ export type PerformanceLabState = {
 }
 
 export type FixtureInteractionContract = {
-  tier: 'editing-baseline' | 'degraded-viewer'
+  tier: Exclude<SupportTier, 'experimental'>
   defaultEditability: Editability
   label: string
   detail: string
@@ -35,6 +41,8 @@ export type ProductDemoTemplateOption = {
   key: ProductDemoTemplateKey
   label: string
   summary: string
+  supportTier: Exclude<SupportTier, 'experimental'>
+  runtimeExpectation: string
 }
 
 export type ProductDemoBuilderNodeId =
@@ -175,6 +183,8 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Support triage',
     summary:
       'Webhook intake, issue classification, knowledge lookup, then an approval-backed reply.',
+    supportTier: 'guaranteed',
+    runtimeExpectation: 'Guaranteed editable builder baseline',
     name: 'Support triage playground',
     optionalNodes: {
       review: true,
@@ -194,6 +204,8 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Sales escalation',
     summary:
       'Lead qualification, CRM enrichment, rep approval, then a follow-up handoff.',
+    supportTier: 'guaranteed',
+    runtimeExpectation: 'Guaranteed editable builder baseline',
     name: 'Sales escalation playground',
     optionalNodes: {
       review: true,
@@ -213,6 +225,8 @@ const PRODUCT_DEMO_TEMPLATE_DEFINITIONS: Record<
     label: 'Ops incident',
     summary:
       'Alert intake, severity routing, investigation, mitigation approval, and status publish.',
+    supportTier: 'guaranteed',
+    runtimeExpectation: 'Guaranteed editable builder baseline',
     name: 'Ops incident playground',
     optionalNodes: {
       review: true,
@@ -465,33 +479,33 @@ export function getFixtureInteractionContract(
   switch (fixture) {
     case 'basic':
       return {
-        tier: 'editing-baseline',
+        tier: 'guaranteed',
         defaultEditability: 'editable',
-        label: 'Editing-capable onboarding baseline',
-        detail: 'Drag, pan, zoom, and selection are part of the public contract here.',
+        label: 'Guaranteed tier — onboarding baseline',
+        detail: 'Drag, pan, zoom, and selection are part of the default Guaranteed contract here.',
       }
     case '100':
       return {
-        tier: 'editing-baseline',
+        tier: 'guaranteed',
         defaultEditability: 'editable',
-        label: 'Editing-capable public baseline',
-        detail: 'This fixture is the public editing baseline for trust checks and smoke evaluation.',
+        label: 'Guaranteed tier — public editable baseline',
+        detail: 'This fixture is the default Guaranteed baseline for trust checks and smoke evaluation.',
       }
     case '500':
       return {
-        tier: 'degraded-viewer',
+        tier: 'supported',
         defaultEditability: 'read-only',
-        label: 'Degraded-by-default viewer tier',
+        label: 'Supported tier — constrained default',
         detail:
-          '500 defaults to read-only so pan, zoom, diagnostics, and fixture load stay trustworthy without implying mature heavy editing.',
+          '500 defaults to read-only so pan, zoom, diagnostics, and fixture load stay trustworthy without implying Guaranteed heavy editing.',
       }
     case '1000':
       return {
-        tier: 'degraded-viewer',
+        tier: 'supported',
         defaultEditability: 'read-only',
-        label: 'Heavy degraded-by-default viewer tier',
+        label: 'Supported tier — heavy constrained default',
         detail:
-          '1000 defaults to read-only and should be treated as a public heavy-viewing baseline unless a host explicitly accepts editing risk.',
+          '1000 defaults to read-only and should be treated as a Supported heavy-viewing baseline unless a host explicitly accepts Experimental editing risk.',
       }
   }
 }
@@ -507,10 +521,12 @@ export function getFixtureGraph(fixture: FixtureKey): GraphDocument {
 
 export function getProductDemoTemplateOptions(): readonly ProductDemoTemplateOption[] {
   return Object.values(PRODUCT_DEMO_TEMPLATE_DEFINITIONS).map(
-    ({ key, label, summary }) => ({
+    ({ key, label, summary, supportTier, runtimeExpectation }) => ({
       key,
       label,
       summary,
+      supportTier,
+      runtimeExpectation,
     }),
   )
 }
@@ -714,11 +730,13 @@ export function getProductDemoTemplateSummary(
     key: definition.key,
     label: definition.label,
     summary: definition.summary,
+    supportTier: definition.supportTier,
+    runtimeExpectation: definition.runtimeExpectation,
   }
 }
 
-export function isDegradedFixture(fixture: FixtureKey): boolean {
-  return getFixtureInteractionContract(fixture).tier === 'degraded-viewer'
+export function isSupportedTierFixture(fixture: FixtureKey): boolean {
+  return getFixtureInteractionContract(fixture).tier === 'supported'
 }
 
 export function resolvePerformanceLabEditability(
@@ -726,7 +744,7 @@ export function resolvePerformanceLabEditability(
   requestedEditability: Editability,
   allowExperimentalEditing: boolean,
 ): Editability {
-  if (isDegradedFixture(fixture) && !allowExperimentalEditing) {
+  if (isSupportedTierFixture(fixture) && !allowExperimentalEditing) {
     return 'read-only'
   }
 
@@ -774,6 +792,11 @@ function createBenchmarkFixture(count: number): GraphDocument {
     version: '0.1.0',
     metadata: {
       fixture: `${count}-nodes`,
+      supportTier: getFixtureInteractionContract(String(count) as FixtureKey).tier,
+      runtimeExpectation:
+        count === 100
+          ? 'Guaranteed editable baseline'
+          : 'Supported read-only default with optional Experimental override',
     },
     nodes,
     edges,
@@ -827,40 +850,29 @@ function readBuilderStateMetadata(
 ): ProductDemoBuilderState | null {
   const builderState = graph.metadata?.builderState
 
-  if (!isRecord(builderState)) {
+  if (!isWorkflowBuilderStateMetadata(builderState)) {
     return null
   }
 
-  const templateKey = builderState.templateKey
-  const optionalNodes = builderState.optionalNodes
-  const actionCount = builderState.actionCount
-  const presetKeys = builderState.presetKeys
-  const statusOverrides = builderState.statusOverrides
-
   if (
-    !isProductDemoTemplateKey(templateKey) ||
-    !isRecord(optionalNodes) ||
-    typeof optionalNodes.review !== 'boolean' ||
-    typeof actionCount !== 'number'
+    !isProductDemoTemplateKey(builderState.templateKey)
   ) {
     return null
   }
 
   return {
-    templateKey,
+    templateKey: builderState.templateKey,
     optionalNodes: {
-      review: optionalNodes.review,
+      review: builderState.optionalNodes.review,
     },
-    actionCount: clampActionCount(actionCount),
-    presetKeys: isRecord(presetKeys) ? normalizePresetKeys(presetKeys, templateKey) : {},
-    statusOverrides: isRecord(statusOverrides)
-      ? normalizeStatusOverrides(statusOverrides)
-      : {},
+    actionCount: clampActionCount(builderState.actionCount),
+    presetKeys: normalizePresetKeys(builderState.presetKeys, builderState.templateKey),
+    statusOverrides: normalizeStatusOverrides(builderState.statusOverrides),
   }
 }
 
 function normalizePresetKeys(
-  value: Record<string, unknown>,
+  value: Partial<Record<string, string>>,
   templateKey: ProductDemoTemplateKey,
 ): Partial<Record<ProductDemoBuilderNodeId, string>> {
   const defaults = createProductDemoBuilderState(templateKey).presetKeys
@@ -875,14 +887,14 @@ function normalizePresetKeys(
 }
 
 function normalizeStatusOverrides(
-  value: Record<string, unknown>,
+  value: Partial<Record<string, WorkflowNode['status']>>,
 ): Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>> {
   const normalized: Partial<Record<ProductDemoBuilderNodeId, WorkflowNode['status']>> = {}
 
   for (const nodeId of PRODUCT_DEMO_NODE_ORDER) {
     const status = value[nodeId]
 
-    if (status === 'idle' || status === 'ready' || status === 'running') {
+    if (isWorkflowNodeStatus(status)) {
       normalized[nodeId] = status
     }
   }
@@ -904,13 +916,16 @@ function buildProductDemoGraph(
       name: PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].name,
       templateKey: state.templateKey,
       templateSummary: PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].summary,
+      supportTier: PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].supportTier,
+      runtimeExpectation:
+        PRODUCT_DEMO_TEMPLATE_DEFINITIONS[state.templateKey].runtimeExpectation,
       builderState: {
         templateKey: state.templateKey,
         optionalNodes: state.optionalNodes,
         actionCount: state.actionCount,
         presetKeys: state.presetKeys,
         statusOverrides: state.statusOverrides,
-      },
+      } satisfies WorkflowBuilderStateMetadata,
     },
     nodes,
     edges: buildProductDemoEdges(state),
@@ -1047,8 +1062,4 @@ function clampActionCount(value: number) {
 
 function isProductDemoTemplateKey(value: unknown): value is ProductDemoTemplateKey {
   return value === 'support-triage' || value === 'sales-escalation' || value === 'ops-incident'
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
 }

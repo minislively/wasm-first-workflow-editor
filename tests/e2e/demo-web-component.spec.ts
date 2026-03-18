@@ -22,11 +22,15 @@ test.describe('product demo web component surface', () => {
 
     await expect(page.getByText('Production Agent Builder')).toBeVisible()
     await expect(
-      page.getByText('내 서비스에 바로 붙일 수 있는 빌더를 지금 바로 만져봅니다.'),
+      page.getByText(
+        'A representative builder shell your team can drop into a product and evaluate immediately.',
+      ),
     ).toBeVisible()
     await expect(page.getByText('Node Inspector', { exact: true })).toBeVisible()
     await expect(page.getByText('Starter template')).toBeVisible()
-    await expect(page.getByText('노드를 직접 보고 움직이는 프로덕션 빌더 화면')).toBeVisible()
+    await expect(
+      page.getByText('See the stage, inspect each step, and tune the starter flow in place.'),
+    ).toBeVisible()
     await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
     await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
     await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)

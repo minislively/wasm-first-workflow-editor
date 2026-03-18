@@ -41,21 +41,21 @@ The current codebase supports these public expectations:
 
 - `basic` is the product-oriented editable builder baseline
 - `100` is the default lab baseline for editing and diagnostics comparison
-- `500 / 1000` default to read-only degraded mode with explicit tier-policy messaging
+- `500 / 1000` default to the Supported read-only contract with explicit tier-policy messaging
 - Product Demo exposes stage interaction, host-owned config flow, and constrained add/remove controls without taking over the graph hot path
 - diagnostics expose backend, kernel source, counts, zoom, and fallback state through public events
 - browser tests cover the builder shell promises plus the visible split between Product Demo and Performance Lab
 
 ## Heavy-tier reliability contract
 
-The reliability-oriented PRD asks for `500 / 1000` to be degraded-by-default unless explicitly justified. The current tree implements that policy in the public lab surface:
+The reliability-oriented PRD asks for `500 / 1000` to remain Supported with a constrained default unless explicitly justified. The current tree implements that policy in the public lab surface:
 
 - `apps/performance-lab` still defaults to `fixture=100` and `editability=editable`
 - switching to `500` or `1000` forces the default public mode back to `read-only`
-- the UI labels those tiers as degraded-by-default and offers an explicit opt-in for experimental editing
+- the UI labels those tiers as Supported and offers an explicit opt-in for Experimental editing
 - diagnostics keep requested and active state visible so the override remains honest
 
-Public docs should therefore describe `500 / 1000` as degraded evaluation fixtures, not as proof of equally trustworthy editing maturity.
+Public docs should therefore describe `500 / 1000` as Supported evaluation fixtures, not as proof of equally trustworthy Guaranteed editing maturity.
 
 ## Host vs engine contract
 

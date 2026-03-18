@@ -17,7 +17,7 @@ export {
   getProductDemoOptionalNodeOptions,
   getProductDemoTemplateSummary,
   getProductDemoTemplateOptions,
-  isDegradedFixture,
+  isSupportedTierFixture,
   isProductDemoOptionalNodeEnabled,
   removeProductDemoOptionalNode,
   resolvePerformanceLabEditability,

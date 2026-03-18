@@ -1,4 +1,4 @@
-import type { GraphDocument, Point, ViewportState } from '@minislively/workflow-types'
+import type { Point, ViewportState } from '@minislively/workflow-types'
 
 export const wasmCoreStatus = {
   implementation: 'rust-entrypoint-scaffold',
@@ -11,8 +11,6 @@ export type WorkflowWasmKernel = {
   source: 'rust-wasm' | 'typescript-fallback'
   initialized: boolean
   clampZoom: (zoom: number) => number
-  boundsWidth: (minX: number, maxX: number) => number
-  boundsHeight: (minY: number, maxY: number) => number
   screenToWorldX: (
     screenX: number,
     viewportX: number,
@@ -42,8 +40,6 @@ export type WorkflowWasmKernel = {
 type WasmModule = {
   __wbg_set_wasm?: (wasm: WebAssembly.Exports) => void
   wf_clamp_zoom?: (zoom: number) => number
-  wf_bounds_width?: (minX: number, maxX: number) => number
-  wf_bounds_height?: (minY: number, maxY: number) => number
   wf_screen_to_world_x?: (
     screenX: number,
     viewportX: number,
@@ -80,26 +76,6 @@ type WasmModule = {
 
 let cachedKernel: Promise<WorkflowWasmKernel> | undefined
 
-export function computeSceneBounds(graph: GraphDocument) {
-  const minX = Math.min(...graph.nodes.map((node) => node.position.x))
-  const minY = Math.min(...graph.nodes.map((node) => node.position.y))
-  const maxX = Math.max(
-    ...graph.nodes.map((node) => node.position.x + node.size.width),
-  )
-  const maxY = Math.max(
-    ...graph.nodes.map((node) => node.position.y + node.size.height),
-  )
-
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-    width: maxX - minX,
-    height: maxY - minY,
-  }
-}
-
 export function clampZoomKernel(zoom: number) {
   return Math.min(2.25, Math.max(0.45, zoom))
 }
@@ -124,8 +100,6 @@ export function getFallbackKernel(): WorkflowWasmKernel {
     source: 'typescript-fallback',
     initialized: true,
     clampZoom: clampZoomKernel,
-    boundsWidth: (minX, maxX) => maxX - minX,
-    boundsHeight: (minY, maxY) => maxY - minY,
     screenToWorldX: (screenX, viewportX, zoom) => screenX / zoom + viewportX,
     screenToWorldY: (screenY, viewportY, zoom) => screenY / zoom + viewportY,
     panViewportX: (viewportX, deltaX, zoom) => viewportX - deltaX / zoom,
@@ -179,8 +153,6 @@ export function zoomViewportState(
 export function createKernelFromModule(module: WasmModule): WorkflowWasmKernel | null {
   if (
     typeof module.wf_clamp_zoom !== 'function' ||
-    typeof module.wf_bounds_width !== 'function' ||
-    typeof module.wf_bounds_height !== 'function' ||
     typeof module.wf_screen_to_world_x !== 'function' ||
     typeof module.wf_screen_to_world_y !== 'function' ||
     typeof module.wf_pan_viewport_x !== 'function' ||
@@ -195,8 +167,6 @@ export function createKernelFromModule(module: WasmModule): WorkflowWasmKernel |
     source: 'rust-wasm',
     initialized: true,
     clampZoom: module.wf_clamp_zoom,
-    boundsWidth: module.wf_bounds_width,
-    boundsHeight: module.wf_bounds_height,
     screenToWorldX: module.wf_screen_to_world_x,
     screenToWorldY: module.wf_screen_to_world_y,
     panViewportX: module.wf_pan_viewport_x,
