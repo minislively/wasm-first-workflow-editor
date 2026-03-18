@@ -183,13 +183,14 @@ async function createKernel(
   const fallback = getFallbackKernel()
 
   try {
-    const targetUrl = moduleUrl ?? new URL('../pkg/index_bg.js', import.meta.url).href
-    const targetWasmUrl =
-      wasmUrl ?? new URL('../pkg/index_bg.wasm', import.meta.url).href
+    const targetUrl = moduleUrl ?? resolveOptionalPkgUrl('index_bg.js')
     const module = (await import(
       /* @vite-ignore */
       targetUrl
     )) as WasmModule
+
+    const targetWasmUrl =
+      wasmUrl ?? resolveOptionalPkgUrl('index_bg.wasm')
 
     if (typeof module.__wbg_set_wasm !== 'function') {
       return fallback
@@ -197,7 +198,9 @@ async function createKernel(
 
     const response = await fetch(targetWasmUrl)
     const bytes = await response.arrayBuffer()
-    const { instance } = await WebAssembly.instantiate(bytes, {})
+    const { instance } = await WebAssembly.instantiate(bytes, {
+      './index_bg.js': module,
+    })
 
     module.__wbg_set_wasm(instance.exports)
 
@@ -210,4 +213,8 @@ async function createKernel(
   } catch {
     return fallback
   }
+}
+
+function resolveOptionalPkgUrl(filename: string): string {
+  return new URL(['..', 'pkg', filename].join('/'), import.meta.url).href
 }
