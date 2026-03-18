@@ -5,6 +5,13 @@ import type {
   ViewportState,
   WorkflowNode,
 } from '@minislively/workflow-types'
+import {
+  clampZoomKernel,
+  getFallbackKernel,
+  panViewportState,
+  screenToWorldPoint,
+  zoomViewportState,
+} from '@minislively/workflow-wasm-core'
 
 export const defaultViewport: ViewportState = {
   x: -80,
@@ -12,25 +19,42 @@ export const defaultViewport: ViewportState = {
   zoom: 1,
 }
 
-export function cloneGraphDocument(graph: GraphDocument): GraphDocument {
-  return structuredClone(graph)
+export type GraphBounds = {
+  minX: number
+  minY: number
+  maxX: number
+  maxY: number
+  width: number
+  height: number
 }
 
+export type GraphAdjacency = {
+  incoming: string[]
+  outgoing: string[]
+}
+
+export type GraphDerivedState = {
+  nodeById: Map<string, WorkflowNode>
+  adjacencyByNodeId: Map<string, GraphAdjacency>
+  orderedNodeIds: string[]
+  nodeCount: number
+  edgeCount: number
+  bounds?: GraphBounds
+}
+
+/**
+ * @deprecated Prefer `findNodeAtFromDerivedState` with a reused `GraphDerivedState`
+ * on repeated interaction paths.
+ */
 export function findNodeAt(
   graph: GraphDocument,
   point: Point,
 ): WorkflowNode | undefined {
-  return [...graph.nodes].reverse().find((node) => {
-    const right = node.position.x + node.size.width
-    const bottom = node.position.y + node.size.height
-
-    return (
-      point.x >= node.position.x &&
-      point.x <= right &&
-      point.y >= node.position.y &&
-      point.y <= bottom
-    )
-  })
+  return findNodeAtFromNodeIndex(
+    createNodeIndex(graph),
+    graph.nodes.map((node) => node.id),
+    point,
+  )
 }
 
 export function moveNode(
@@ -38,22 +62,28 @@ export function moveNode(
   nodeId: string,
   position: Point,
 ): GraphDocument {
-  const next = cloneGraphDocument(graph)
-  const node = next.nodes.find((item) => item.id === nodeId)
+  const nodeIndex = graph.nodes.findIndex((item) => item.id === nodeId)
 
-  if (!node) {
-    return next
+  if (nodeIndex < 0) {
+    return graph
   }
 
-  node.position = position
-  return next
+  const nextNodes = [...graph.nodes]
+  const currentNode = nextNodes[nodeIndex]
+
+  nextNodes[nodeIndex] = {
+    ...currentNode,
+    position,
+  }
+
+  return {
+    ...graph,
+    nodes: nextNodes,
+  }
 }
 
 export function screenToWorld(point: Point, viewport: ViewportState): Point {
-  return {
-    x: point.x / viewport.zoom + viewport.x,
-    y: point.y / viewport.zoom + viewport.y,
-  }
+  return screenToWorldPoint(point, viewport, getFallbackKernel())
 }
 
 export function zoomViewport(
@@ -61,18 +91,7 @@ export function zoomViewport(
   delta: number,
   anchor: Point,
 ): ViewportState {
-  const nextZoom = clampZoom(viewport.zoom + delta)
-  const anchorBefore = screenToWorld(anchor, viewport)
-  const anchorAfter = screenToWorld(anchor, {
-    ...viewport,
-    zoom: nextZoom,
-  })
-
-  return {
-    x: viewport.x + (anchorBefore.x - anchorAfter.x),
-    y: viewport.y + (anchorBefore.y - anchorAfter.y),
-    zoom: nextZoom,
-  }
+  return zoomViewportState(viewport, delta, anchor, getFallbackKernel())
 }
 
 export function panViewport(
@@ -80,27 +99,211 @@ export function panViewport(
   deltaX: number,
   deltaY: number,
 ): ViewportState {
-  return {
-    ...viewport,
-    x: viewport.x - deltaX / viewport.zoom,
-    y: viewport.y - deltaY / viewport.zoom,
-  }
+  return panViewportState(viewport, deltaX, deltaY, getFallbackKernel())
 }
 
 export function clampZoom(zoom: number): number {
-  return Math.min(2.25, Math.max(0.45, zoom))
+  return clampZoomKernel(zoom)
 }
 
+/**
+ * @deprecated Prefer `getSelectionSummaryFromIndex` with a reused node index on
+ * repeated interaction paths.
+ */
 export function getSelectionSummary(
   graph: GraphDocument,
   selectionIds: string[],
 ): SelectionSummary[] {
-  return graph.nodes
-    .filter((node) => selectionIds.includes(node.id))
-    .map((node) => ({
-      id: node.id,
-      title: node.title,
-      type: node.type,
-      status: node.status,
-    }))
+  const selectedIdSet = new Set(selectionIds)
+
+  return graph.nodes.flatMap((node) => {
+    if (!selectedIdSet.has(node.id)) {
+      return []
+    }
+
+    return [toSelectionSummary(node)]
+  })
+}
+
+export function createNodeIndex(
+  graph: GraphDocument,
+): Map<string, WorkflowNode> {
+  return new Map(graph.nodes.map((node) => [node.id, node]))
+}
+
+export function createAdjacencyIndex(
+  graph: GraphDocument,
+): Map<string, GraphAdjacency> {
+  const adjacencyByNodeId = new Map<string, GraphAdjacency>()
+
+  for (const node of graph.nodes) {
+    adjacencyByNodeId.set(node.id, {
+      incoming: [],
+      outgoing: [],
+    })
+  }
+
+  for (const edge of graph.edges) {
+    adjacencyByNodeId.get(edge.source)?.outgoing.push(edge.target)
+    adjacencyByNodeId.get(edge.target)?.incoming.push(edge.source)
+  }
+
+  return adjacencyByNodeId
+}
+
+export function computeGraphBounds(
+  graph: GraphDocument,
+): GraphBounds | undefined {
+  if (graph.nodes.length === 0) {
+    return undefined
+  }
+
+  const minX = Math.min(...graph.nodes.map((node) => node.position.x))
+  const minY = Math.min(...graph.nodes.map((node) => node.position.y))
+  const maxX = Math.max(
+    ...graph.nodes.map((node) => node.position.x + node.size.width),
+  )
+  const maxY = Math.max(
+    ...graph.nodes.map((node) => node.position.y + node.size.height),
+  )
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  }
+}
+
+export function createGraphDerivedState(
+  graph: GraphDocument,
+): GraphDerivedState {
+  return {
+    nodeById: createNodeIndex(graph),
+    adjacencyByNodeId: createAdjacencyIndex(graph),
+    orderedNodeIds: graph.nodes.map((node) => node.id),
+    nodeCount: graph.nodes.length,
+    edgeCount: graph.edges.length,
+    bounds: computeGraphBounds(graph),
+  }
+}
+
+export function findNodeAtFromDerivedState(
+  derivedState: GraphDerivedState,
+  point: Point,
+): WorkflowNode | undefined {
+  return findNodeAtFromNodeIndex(
+    derivedState.nodeById,
+    derivedState.orderedNodeIds,
+    point,
+  )
+}
+
+export function getSelectionSummaryFromIndex(
+  nodeById: Map<string, WorkflowNode>,
+  selectionIds: string[],
+): SelectionSummary[] {
+  return selectionIds.flatMap((selectionId) => {
+    const node = nodeById.get(selectionId)
+
+    if (!node) {
+      return []
+    }
+
+    return [toSelectionSummary(node)]
+  })
+}
+
+export function updateDerivedStateForNodeMove(
+  graph: GraphDocument,
+  previousState: GraphDerivedState,
+  previousNode: WorkflowNode | undefined,
+  nextNode: WorkflowNode | undefined,
+): GraphDerivedState {
+  if (!previousNode || !nextNode) {
+    return createGraphDerivedState(graph)
+  }
+
+  const nextNodeById = new Map(previousState.nodeById)
+  nextNodeById.set(nextNode.id, nextNode)
+
+  const previousBounds = previousState.bounds
+  if (!previousBounds) {
+    return {
+      ...previousState,
+      nodeById: nextNodeById,
+      bounds: computeGraphBounds(graph),
+    }
+  }
+
+  const previousRight = previousNode.position.x + previousNode.size.width
+  const previousBottom = previousNode.position.y + previousNode.size.height
+  const touchesPreviousBounds =
+    previousNode.position.x <= previousBounds.minX ||
+    previousNode.position.y <= previousBounds.minY ||
+    previousRight >= previousBounds.maxX ||
+    previousBottom >= previousBounds.maxY
+
+  const nextBounds = touchesPreviousBounds
+    ? computeGraphBounds(graph)
+    : {
+        minX: Math.min(previousBounds.minX, nextNode.position.x),
+        minY: Math.min(previousBounds.minY, nextNode.position.y),
+        maxX: Math.max(previousBounds.maxX, nextNode.position.x + nextNode.size.width),
+        maxY: Math.max(previousBounds.maxY, nextNode.position.y + nextNode.size.height),
+        width: 0,
+        height: 0,
+      }
+
+  return {
+    ...previousState,
+    nodeById: nextNodeById,
+    bounds:
+      nextBounds
+        ? {
+            ...nextBounds,
+            width: nextBounds.maxX - nextBounds.minX,
+            height: nextBounds.maxY - nextBounds.minY,
+          }
+        : nextBounds,
+  }
+}
+
+function findNodeAtFromNodeIndex(
+  nodeById: ReadonlyMap<string, WorkflowNode>,
+  orderedNodeIds: readonly string[],
+  point: Point,
+): WorkflowNode | undefined {
+  for (let index = orderedNodeIds.length - 1; index >= 0; index -= 1) {
+    const node = nodeById.get(orderedNodeIds[index])
+
+    if (!node) {
+      continue
+    }
+
+    const right = node.position.x + node.size.width
+    const bottom = node.position.y + node.size.height
+
+    if (
+      point.x >= node.position.x &&
+      point.x <= right &&
+      point.y >= node.position.y &&
+      point.y <= bottom
+    ) {
+      return node
+    }
+  }
+
+  return undefined
+}
+
+function toSelectionSummary(node: WorkflowNode): SelectionSummary {
+  return {
+    id: node.id,
+    title: node.title,
+    type: node.type,
+    status: node.status,
+  }
 }

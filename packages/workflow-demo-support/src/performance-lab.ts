@@ -4,7 +4,7 @@ import type { DiagnosticsState } from './diagnostics'
 import {
   describeFixtureTier,
   getFixtureInteractionContract,
-  isDegradedFixture,
+  isSupportedDefaultFixture,
   resolvePerformanceLabEditability,
   type FixtureKey,
   type PerformanceLabState,
@@ -26,7 +26,7 @@ export type PerformanceLabSummary = {
   fallbackLabel: string
   capabilityTitle: string
   capabilityDetail: string
-  degradedByDefault: boolean
+  hasSupportedDefault: boolean
   evaluationNotes: string[]
 }
 
@@ -41,7 +41,7 @@ export function createPerformanceLabSummary(
     state.editability,
     state.allowExperimentalEditing,
   )
-  const degradedByDefault = isDegradedFixture(state.fixture)
+  const hasSupportedDefault = isSupportedDefaultFixture(state.fixture)
 
   return {
     renderer,
@@ -51,14 +51,14 @@ export function createPerformanceLabSummary(
     fixtureLabel: describeFixture(state.fixture),
     fixtureContractLabel: describeFixtureTier(state.fixture),
     fallbackLabel: diagnostics.fallbackReason ?? 'No fallback reported.',
-    capabilityTitle: getCapabilityTitle(degradedByDefault, state.allowExperimentalEditing),
+    capabilityTitle: getCapabilityTitle(hasSupportedDefault, state.allowExperimentalEditing),
     capabilityDetail: getCapabilityDetail(
       state.fixture,
       state.editability,
       effectiveEditability,
       state.allowExperimentalEditing,
     ),
-    degradedByDefault,
+    hasSupportedDefault,
     evaluationNotes: createEvaluationNotes(
       state,
       diagnostics,
@@ -76,14 +76,14 @@ function describeEditability(
   const contract = getFixtureInteractionContract(state.fixture)
 
   if (effectiveEditability === 'read-only') {
-    return contract.tier === 'degraded-viewer'
-      ? 'Read-only is the default public contract for this fixture tier.'
-      : 'Read-only isolates pan/zoom and fixture load behavior.'
+    return contract.tier === 'supported'
+      ? 'Read-only is the default Supported contract for this fixture.'
+      : 'Read-only isolates pan/zoom and fixture-load behavior within the Guaranteed tier.'
   }
 
-  return contract.tier === 'degraded-viewer'
-    ? 'Editable overrides the degraded default and should be treated as an explicit experiment.'
-    : 'Editable keeps node drag interactions active while you evaluate.'
+  return contract.tier === 'supported'
+    ? 'Editable overrides the Supported default and should be treated as an Experimental path.'
+    : 'Editable keeps node drag interactions active while you evaluate the Guaranteed tier.'
 }
 
 function resolveRenderer(
@@ -166,9 +166,9 @@ function createEvaluationNotes(
     `Interaction mode: ${effectiveEditability === 'read-only' ? 'navigation-only' : 'editing enabled'}`,
   ]
 
-  if (isDegradedFixture(state.fixture) && !state.allowExperimentalEditing) {
+  if (isSupportedDefaultFixture(state.fixture) && !state.allowExperimentalEditing) {
     notes.push('Heavy fixture policy: read-only is enforced until experimental editing is explicitly enabled.')
-  } else if (isDegradedFixture(state.fixture) && state.allowExperimentalEditing) {
+  } else if (isSupportedDefaultFixture(state.fixture) && state.allowExperimentalEditing) {
     notes.push('Heavy fixture policy: experimental editing is explicitly enabled for this session.')
   }
 
@@ -200,23 +200,23 @@ export function describeFixture(fixture: FixtureKey) {
     case '100':
       return '100 nodes for sanity and interaction smoke'
     case '500':
-      return '500 nodes for degraded-by-default runtime evaluation'
+      return '500 nodes for Supported heavy-tier evaluation'
     case '1000':
-      return '1000 nodes for the public heavy-viewing baseline'
+      return '1000 nodes for the Supported heavy-viewing baseline'
   }
 }
 
 function getCapabilityTitle(
-  degradedByDefault: boolean,
+  hasSupportedDefault: boolean,
   allowExperimentalEditing: boolean,
 ) {
-  if (!degradedByDefault) {
-    return 'Editing-capable baseline'
+  if (!hasSupportedDefault) {
+    return 'Guaranteed tier is active'
   }
 
   return allowExperimentalEditing
     ? 'Experimental editing enabled'
-    : 'Degraded mode is active'
+    : 'Supported default is active'
 }
 
 function getCapabilityDetail(
@@ -225,17 +225,17 @@ function getCapabilityDetail(
   effectiveEditability: Editability,
   allowExperimentalEditing: boolean,
 ) {
-  if (!isDegradedFixture(fixture)) {
-    return 'This public tier keeps editing available by default, so the visible controls match the editing-capable baseline promise.'
+  if (!isSupportedDefaultFixture(fixture)) {
+    return 'This public tier keeps editing available by default, so the visible controls match the Guaranteed baseline promise.'
   }
 
   if (!allowExperimentalEditing) {
-    return '500 and 1000 stay read-only by default. Pan, zoom, diagnostics, and fixture switching remain trustworthy while broad editing stays explicitly degraded.'
+    return '500 and 1000 stay read-only by default. Pan, zoom, diagnostics, and fixture switching remain trustworthy within the Supported contract while broad editing stays out of the default path.'
   }
 
   if (requestedEditability === 'read-only' || effectiveEditability === 'read-only') {
-    return 'Experimental editing is unlocked for this heavy tier, but the current request still keeps the runtime in read-only mode.'
+    return 'Experimental editing is unlocked for this Supported heavy tier, but the current request still keeps the runtime in read-only mode.'
   }
 
-  return 'Experimental editing is enabled for this heavy tier. Treat direct graph edits as an investigative path, not as the default public promise.'
+  return 'Experimental editing is enabled for this Supported heavy tier. Treat direct graph edits as an investigative path, not as the default public promise.'
 }

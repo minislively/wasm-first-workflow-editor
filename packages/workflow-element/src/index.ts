@@ -18,6 +18,7 @@ export class WorkflowEditorElement extends HTMLElement {
   graph: GraphDocument = createBasicDemoGraph()
   theme?: Partial<ThemeTokens>
   preferences?: Partial<RuntimePreferences>
+  shellMode: 'default' | 'stage-only' = 'default'
 
   private canvas?: HTMLCanvasElement
   private railList?: HTMLElement
@@ -72,9 +73,11 @@ export class WorkflowEditorElement extends HTMLElement {
   }
 
   private renderShell() {
+    const shellClass = this.shellMode === 'stage-only' ? 'shell stage-only' : 'shell'
+
     return `
       <style>${editorShellStyles}</style>
-      <div class="shell">
+      <div class="${shellClass}">
         <div class="topbar">
           <div class="brand">
             <div class="eyebrow">minislively / wasm-first</div>
@@ -204,7 +207,10 @@ export class WorkflowEditorElement extends HTMLElement {
     switch (event.type) {
       case 'ready':
         if (this.statusBadge) {
-          this.statusBadge.textContent = `${event.backend} · ${event.kernelSource}${event.fallbackReason ? ` · ${event.fallbackReason}` : ''}`
+          this.statusBadge.textContent =
+            this.shellMode === 'stage-only'
+              ? `${event.backend} · ${event.kernelSource}`
+              : `${event.backend} · ${event.kernelSource}${event.fallbackReason ? ` · ${event.fallbackReason}` : ''}`
         }
         this.dispatchEvent(new CustomEvent('ready', { detail: event }))
         break
@@ -219,7 +225,10 @@ export class WorkflowEditorElement extends HTMLElement {
         break
       case 'stats':
         if (this.statsBadge) {
-          this.statsBadge.textContent = `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.backend} · ${event.kernelSource}`
+          this.statsBadge.textContent =
+            this.shellMode === 'stage-only'
+              ? `${event.nodeCount}n · ${event.edgeCount}e · ${event.zoom.toFixed(2)}x`
+              : `${event.nodeCount} nodes · ${event.edgeCount} edges · ${event.zoom.toFixed(2)}x · ${event.backend} · ${event.kernelSource}`
         }
         this.dispatchEvent(new CustomEvent('stats', { detail: event }))
         break
@@ -314,6 +323,9 @@ export async function createWorkflowEditor(options: WorkflowEditorOptions) {
   defineWorkflowEditor()
   const element = document.createElement(elementTag) as WorkflowEditorElement
   element.graph = options.graph
+  if (options.shellMode) {
+    element.shellMode = options.shellMode
+  }
   if (options.theme) {
     element.theme = options.theme
   }

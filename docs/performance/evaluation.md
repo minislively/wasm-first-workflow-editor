@@ -1,6 +1,6 @@
 # Performance Evaluation Guide
 
-Use `apps/performance-lab` when you need evidence about runtime behavior, not just a first-run product feel.
+Use `apps/performance-lab` when you need evidence about runtime behavior, not just a first-run reference-app feel.
 
 ## What to evaluate
 
@@ -12,10 +12,10 @@ Use `apps/performance-lab` when you need evidence about runtime behavior, not ju
 
 ## Recommended lab flow
 
-1. Start from the dedicated `Performance Lab` app, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
+1. Start from the dedicated `Performance Example` app, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
 2. Confirm the diagnostics panel shows the active renderer, kernel source, and current preferences before changing anything.
 3. Step through `100`, `500`, and `1000` to observe node count, edge count, and zoom behavior under the same surface contract.
-4. Verify that `500` and `1000` switch into explicit degraded read-only mode by default before enabling any experimental heavy-tier editing.
+4. Verify that `500` and `1000` stay in the Supported read-only default before enabling any Experimental heavy-tier editing.
 5. Change `rendererPreference` between `auto`, `webgl`, and `canvas` to see whether the runtime stays on the requested path or reports a fallback.
 6. Change `kernelPreference` between `auto`, `wasm`, and `ts-fallback` to confirm which kernel source is active and whether a fallback reason is exposed.
 7. Switch `editability` to `read-only` on lighter tiers when your evaluation target is viewer-style embedding rather than authoring.
@@ -23,9 +23,9 @@ Use `apps/performance-lab` when you need evidence about runtime behavior, not ju
 ## Trustworthy reading of fixture tiers
 
 - `100` is the current editable lab baseline
-- `500` and `1000` are public degraded-by-default evaluation fixtures
-- if you are presenting heavier fixtures publicly today, keep the default read-only contract unless you intentionally enable experimental editing
-- keep the tier-policy message and requested-vs-active diagnostics visible when you override the default heavy-tier behavior
+- `500` and `1000` are public Supported evaluation fixtures with a constrained read-only default
+- if you are presenting heavier fixtures publicly today, keep the Supported default contract unless you intentionally enable Experimental editing
+- keep the tier-policy message and requested-vs-active diagnostics visible when you override the default Supported behavior
 
 ## How to read diagnostics
 
@@ -34,7 +34,7 @@ Use `apps/performance-lab` when you need evidence about runtime behavior, not ju
 - `Fallback`: explicit reason when the requested renderer or kernel could not stay on the preferred path
 - `Renderer pref` / `Kernel pref`: the requested runtime mode, whether `auto` or forced
 - `Nodes` / `Edges` / `Zoom`: the public runtime snapshot exposed through the `stats` event
-- `Tier policy` / `Fixture contract`: whether the current fixture is an editing baseline or a degraded-by-default viewer tier
+- `Tier policy` / `Fixture contract`: whether the current fixture is in the Guaranteed baseline or the Supported constrained default
 
 Expected fallback examples:
 
@@ -47,10 +47,10 @@ Expected fallback examples:
 - the repo exposes one public evaluation app instead of hidden internal-only diagnostics
 - benchmark fixtures for `100`, `500`, and `1000` are runnable from the same host contract
 - renderer and kernel preferences are externally visible through runtime diagnostics
-- heavy tiers are visibly degraded by default instead of silently implying mature editing
+- heavy tiers are visibly Supported by default instead of silently implying Guaranteed editing
 - fallback states stay visible enough for adopters to judge fit without reading internals
 - the current default baseline is honest: `fixture=100`, `editability=editable`, diagnostics visible
-- heavy tiers surface degraded-by-default policy before experimental editing is enabled
+- heavy tiers surface the Supported constrained default before Experimental editing is enabled
 
 ## What the lab does not prove today
 

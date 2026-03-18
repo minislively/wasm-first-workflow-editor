@@ -116,6 +116,9 @@ importers:
       '@minislively/workflow-types':
         specifier: workspace:*
         version: link:../workflow-types
+      '@minislively/workflow-wasm-core':
+        specifier: workspace:*
+        version: link:../workflow-wasm-core
 
   packages/workflow-demo-support:
     dependencies:
@@ -198,12 +201,18 @@ importers:
 
   packages/workflow-renderer-canvas:
     dependencies:
+      '@minislively/workflow-core':
+        specifier: workspace:*
+        version: link:../workflow-core
       '@minislively/workflow-types':
         specifier: workspace:*
         version: link:../workflow-types
 
   packages/workflow-renderer-webgl:
     dependencies:
+      '@minislively/workflow-core':
+        specifier: workspace:*
+        version: link:../workflow-core
       '@minislively/workflow-types':
         specifier: workspace:*
         version: link:../workflow-types

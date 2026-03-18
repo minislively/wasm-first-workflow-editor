@@ -2,11 +2,21 @@ import './style.css'
 
 import { createWorkflowEditor } from '@minislively/workflow-element'
 import {
+  addProductDemoOptionalNode,
   applyReadyDiagnostics,
   applyStatsDiagnostics,
   createInitialDiagnosticsState,
+  getProductDemoBuilderNodes,
   getProductDemoGraph,
+  getProductDemoOptionalNodeOptions,
   getProductDemoTemplateOptions,
+  getProductDemoTemplateSummary,
+  removeProductDemoOptionalNode,
+  setProductDemoNodePreset,
+  setProductDemoNodeStatus,
+  setProductDemoTemplate,
+  type ProductDemoBuilderNodeId,
+  type ProductDemoOptionalNodeFamily,
   type ProductDemoTemplateKey,
 } from '@minislively/workflow-demo-support'
 import type { EngineEvent, GraphDocument, SelectionSummary } from '@minislively/workflow-types'
@@ -27,92 +37,67 @@ let selection: SelectionSummary[] = []
 const productDemoTemplates = getProductDemoTemplateOptions()
 let templateState: ProductDemoTemplateKey = productDemoTemplates[0]?.key ?? 'support-triage'
 let currentGraph: GraphDocument = getProductDemoGraph(templateState)
+let activeNodeId: ProductDemoBuilderNodeId = 'trigger'
 
 app.innerHTML = `
   <main class="page">
-    <section class="hero-card">
-      <div>
-        <p class="eyebrow">phase 1 public surface</p>
-        <h1>Product Demo keeps the first run focused.</h1>
-        <p class="lede">
-          This page is the lightweight, product-oriented Web Component surface. It keeps the editor feel front and center while the dedicated Performance Lab handles heavier diagnostics and runtime evaluation elsewhere.
-        </p>
-      </div>
-      <div class="hero-stack">
-        <div class="hero-pill">Primary: Web Component</div>
-        <div class="hero-pill">Secondary: React wrapper</div>
-        <div class="hero-pill">Boundary: engine strict / shell flexible</div>
-        <div class="hero-pill">Fixture: basic onboarding graph</div>
-      </div>
+    <section class="mission-strip">
+      <p class="eyebrow">Reference App</p>
+      <h1>Embeddable Workflow Builder Reference</h1>
+      <p class="mission-copy">
+        Start here to see the primary Web Component integration path in a builder-shaped reference shell.
+      </p>
     </section>
     <section class="surface-shell">
-      <div class="surface-header">
-        <div>
-          <div class="panel-label">Product Demo</div>
-          <strong class="surface-title">Default experience for first-time OSS users</strong>
-        </div>
-        <div class="surface-summary">
-          Start with the built-in editor feel here. This surface only exposes the controls we trust in public right now: select, drag, pan, zoom, and swap between guided example flows.
-        </div>
-      </div>
       <div class="surface-layout">
-        <aside class="control-panel">
-          <section class="panel-card">
-            <div class="panel-label">Why This Surface Exists</div>
-            <strong>Usable before you benchmark.</strong>
-            <p>
-              Keep the first impression small, editable, and product-shaped. The
-              graph hot path stays inside the same custom element contract that
-              production hosts will embed.
-            </p>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Trusted Controls</div>
-            <strong>Visible controls match the current product promise.</strong>
-            <div class="template-summary">
-              <p>Select, drag, pan, and zoom the example graph.</p>
-              <p>Swap between guided example flows without broad freeform editing.</p>
-              <p>Use the runtime snapshot for backend, kernel, and fallback truth.</p>
+        <section class="canvas-column">
+          <section class="editor-shell">
+            <div class="builder-banner">
+              <div class="builder-banner-copy">
+                <div class="panel-label">Live Canvas</div>
+                <strong>See the stage, inspect each step, and adapt the reference flow in place.</strong>
+              </div>
+              <div class="builder-banner-meta">
+                <p>This reference surface stays interactive without turning into a runtime-evaluation console.</p>
+              </div>
+              <div class="builder-banner-controls">
+                <label class="template-picker">
+                  <span>Starter template</span>
+                  <select data-builder-control="template">
+                    ${productDemoTemplates
+                      .map(
+                        (template) =>
+                          `<option value="${template.key}">${template.label}</option>`,
+                      )
+                      .join('')}
+                  </select>
+                </label>
+                <div class="optional-node-controls" data-role="optional-node-controls"></div>
+              </div>
             </div>
+            <div id="mount"></div>
           </section>
-          <section class="panel-card">
-            <div class="panel-label">Template-First Example</div>
-            <strong>Swap guided API steps without promising broad authoring.</strong>
-            <p>
-              This shell-owned panel swaps known node variants in the starter
-              flow so users can test API-flavored examples without relying on
-              unrestricted graph editing.
-            </p>
-            <div class="template-control-stack">
-              <label>
-                <span>Guided example flow</span>
-                <select data-template-control="template">
-                  ${productDemoTemplates
-                    .map(
-                      (template) =>
-                        `<option value="${template.key}">${template.label}</option>`,
-                    )
-                    .join('')}
-                </select>
-              </label>
-            </div>
+          <section class="control-strip">
             <div class="template-summary" data-role="template-summary"></div>
           </section>
-          <section class="panel-card">
-            <div class="panel-label">Runtime Snapshot</div>
-            <strong data-role="runtime-title">Booting editor runtime...</strong>
-            <p data-role="runtime-copy">
-              Waiting for the custom element to report backend, kernel, and fallback state.
+        </section>
+        <aside class="config-sidebar">
+          <section class="panel-card config-card">
+            <div class="panel-label">Node Inspector</div>
+            <strong data-role="config-title">Select a builder step</strong>
+            <p class="panel-copy" data-role="config-copy">
+              Adjust the selected step from the host-owned side panel.
             </p>
-          </section>
-          <section class="panel-card">
-            <div class="panel-label">Selection</div>
-            <div class="selection-list" data-role="selection-list"></div>
+            <div class="config-form" data-role="config-form"></div>
+            <div class="runtime-card">
+              <div class="panel-label">Runtime Context</div>
+              <strong data-role="runtime-title">Booting editor runtime...</strong>
+              <p class="panel-copy" data-role="runtime-copy">
+                Waiting for the custom element to report backend, kernel, and fallback state.
+              </p>
+            </div>
           </section>
         </aside>
-        <section class="editor-shell">
-          <div id="mount"></div>
-        </section>
       </div>
     </section>
   </main>
@@ -122,15 +107,16 @@ const mount = document.querySelector<HTMLElement>('#mount')!
 const editor = await createWorkflowEditor({
   mount,
   graph: currentGraph,
-    theme: {
-      accent: '#14b8a6',
-      nodeSelected: '#14b8a6',
-    },
-    preferences: {
-      editability: 'editable',
-      rendererPreference: 'auto',
-      kernelPreference: 'auto',
-    },
+  shellMode: 'stage-only',
+  theme: {
+    accent: '#14b8a6',
+    nodeSelected: '#14b8a6',
+  },
+  preferences: {
+    editability: 'editable',
+    rendererPreference: 'auto',
+    kernelPreference: 'auto',
+  },
 })
 
 editor.element.addEventListener('ready', (event) => {
@@ -160,6 +146,12 @@ editor.element.addEventListener('selection', (event) => {
   }
 
   selection = detail.selected
+  const selectedNodeId = detail.selected[0]?.id
+
+  if (isBuilderNodeId(selectedNodeId)) {
+    activeNodeId = selectedNodeId
+  }
+
   renderPanels()
 })
 
@@ -170,29 +162,97 @@ editor.element.addEventListener('change', (event) => {
   }
 
   currentGraph = detail.graph
+  ensureActiveNode()
   renderPanels()
 })
 
-document
-  .querySelectorAll<HTMLSelectElement>('[data-template-control]')
-  .forEach((select) => {
-    select.addEventListener('change', async () => {
-      templateState = select.value as ProductDemoTemplateKey
-      currentGraph = getProductDemoGraph(templateState)
+app.addEventListener('click', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLElement)) {
+    return
+  }
+
+  const flowButton = target.closest<HTMLButtonElement>('[data-flow-node]')
+  if (flowButton) {
+    const nodeId = flowButton.dataset.flowNode
+
+    if (isBuilderNodeId(nodeId)) {
+      activeNodeId = nodeId
       renderPanels()
-      await editor.setGraph(currentGraph)
-      selection = []
-      renderPanels()
-    })
-  })
+    }
+
+    return
+  }
+
+  const toggleButton = target.closest<HTMLButtonElement>('[data-optional-node-family]')
+  if (toggleButton) {
+    const family = toggleButton.dataset.optionalNodeFamily
+    const action = toggleButton.dataset.optionalNodeAction
+
+    if (!isOptionalNodeFamily(family)) {
+      return
+    }
+
+    if (action === 'add') {
+      void commitGraph(addProductDemoOptionalNode(currentGraph, family))
+      return
+    }
+
+    if (action === 'remove') {
+      void commitGraph(removeProductDemoOptionalNode(currentGraph, family))
+    }
+  }
+})
+
+app.addEventListener('change', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLSelectElement)) {
+    return
+  }
+
+  if (target.dataset.builderControl === 'template') {
+    templateState = target.value as ProductDemoTemplateKey
+    void commitGraph(setProductDemoTemplate(currentGraph, templateState))
+    return
+  }
+
+  if (!isBuilderNodeId(target.dataset.nodeId)) {
+    return
+  }
+
+  const nodeId = target.dataset.nodeId
+
+  if (target.dataset.configControl === 'preset') {
+    void commitGraph(setProductDemoNodePreset(currentGraph, nodeId, target.value))
+    return
+  }
+
+  if (target.dataset.configControl === 'status') {
+    void commitGraph(
+      setProductDemoNodeStatus(
+        currentGraph,
+        nodeId,
+        target.value as SelectionSummary['status'],
+      ),
+    )
+  }
+})
 
 renderPanels()
 
 function renderPanels() {
   const runtimeTitle = document.querySelector<HTMLElement>('[data-role="runtime-title"]')
   const runtimeCopy = document.querySelector<HTMLElement>('[data-role="runtime-copy"]')
-  const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
   const templateSummary = document.querySelector<HTMLElement>('[data-role="template-summary"]')
+  const optionalNodeControls = document.querySelector<HTMLElement>(
+    '[data-role="optional-node-controls"]',
+  )
+  const configTitle = document.querySelector<HTMLElement>('[data-role="config-title"]')
+  const configCopy = document.querySelector<HTMLElement>('[data-role="config-copy"]')
+  const configForm = document.querySelector<HTMLElement>('[data-role="config-form"]')
+  const builderNodes = getProductDemoBuilderNodes(currentGraph)
+  const activeNode = builderNodes.find((node) => node.id === activeNodeId) ?? builderNodes[0]
+  const template = getProductDemoTemplateSummary(currentGraph)
   const runtimeState =
     diagnostics.lastEvent === null
       ? {
@@ -204,49 +264,146 @@ function renderPanels() {
           title: diagnostics.fallbackReason
             ? `Fallback active on ${diagnostics.backend}`
             : `${diagnostics.backend} runtime is active`,
-          detail: [
-            `Kernel ${diagnostics.kernelSource}.`,
-            diagnostics.fallbackReason ?? 'No fallback reported.',
-          ].join(' '),
+          detail: diagnostics.fallbackReason
+            ? `${diagnostics.backend} / ${diagnostics.kernelSource} · ${diagnostics.fallbackReason}`
+            : `${diagnostics.backend} / ${diagnostics.kernelSource}`,
         }
 
   document
-    .querySelectorAll<HTMLSelectElement>('[data-template-control]')
+    .querySelectorAll<HTMLSelectElement>('[data-builder-control="template"]')
     .forEach((select) => {
-      select.value = templateState
+      select.value = template.key
     })
+
+  templateSummary!.innerHTML = `
+    <strong>${template.label}</strong>
+    <p>${template.summary}</p>
+  `
+
+  optionalNodeControls!.innerHTML = getProductDemoOptionalNodeOptions(currentGraph)
+    .map(
+      (option) => `
+        <article class="toggle-card is-compact">
+          <div class="toggle-header">
+            <strong>${option.label}</strong>
+            <span class="toggle-meta">${option.activeCount}/${option.maxCount}</span>
+          </div>
+          <div class="toggle-actions">
+            ${
+              option.canAdd
+                ? `
+                  <button
+                    class="toggle-button"
+                    data-optional-node-family="${option.family}"
+                    data-optional-node-action="add"
+                    type="button"
+                  >
+                    Add ${option.label.toLowerCase()}
+                  </button>
+                `
+                : ''
+            }
+            ${
+              option.canRemove
+                ? `
+                  <button
+                    class="toggle-button is-secondary"
+                    data-optional-node-family="${option.family}"
+                    data-optional-node-action="remove"
+                    type="button"
+                  >
+                    Remove ${option.label.toLowerCase()}
+                  </button>
+                `
+                : ''
+            }
+          </div>
+        </article>
+      `,
+    )
+    .join('')
 
   runtimeTitle!.textContent = runtimeState.title
   runtimeCopy!.textContent = runtimeState.detail
-  const activeTemplate =
-    productDemoTemplates.find((template) => template.key === templateState) ??
-    productDemoTemplates[0]
-  templateSummary!.innerHTML = `
-    <strong>${activeTemplate.label}</strong>
-    <p>
-      ${activeTemplate.summary}
-    </p>
-    <p>
-      Host-managed template swap active. The shell chooses guided flow variants
-      while the engine still owns drag, pan, zoom, selection, and rendering.
-    </p>
-    <p>
-      Broad add, delete, and reconnect editing stays out of this public demo until it is equally trustworthy.
-    </p>
-  `
 
-  selectionList!.innerHTML =
-    selection.length === 0
-      ? '<div class="selection-empty">No selection. Drag, pan, zoom, and template switching stay live on this guided product surface.</div>'
-      : selection
-          .map(
-            (item) => `
-              <article class="selection-item">
-                <strong>${item.title}</strong>
-                <span>${item.type}</span>
-                <span>Status: ${item.status}</span>
-              </article>
-            `,
-          )
-          .join('')
+  if (!activeNode) {
+    configTitle!.textContent = 'Select a builder step'
+    configCopy!.textContent = 'Choose a step on the stage to review and adjust it here.'
+    configForm!.innerHTML = ''
+  } else {
+    activeNodeId = activeNode.id
+    configTitle!.textContent = `${activeNode.currentTitle} · ${activeNode.slotLabel}`
+    configCopy!.textContent = activeNode.panelCopy
+    configForm!.innerHTML = `
+      <label>
+        <span>${activeNode.presetLabel}</span>
+        <select data-config-control="preset" data-node-id="${activeNode.id}">
+          ${activeNode.presetOptions
+            .map(
+              (preset) =>
+                `<option value="${preset.key}"${
+                  preset.key === activeNode.currentPresetKey ? ' selected' : ''
+                }>${preset.label}</option>`,
+            )
+            .join('')}
+        </select>
+      </label>
+      <label>
+        <span>Status</span>
+        <select data-config-control="status" data-node-id="${activeNode.id}">
+          ${(['idle', 'ready', 'running'] as const)
+            .map(
+              (status) =>
+                `<option value="${status}"${
+                  status === activeNode.currentStatus ? ' selected' : ''
+                }>${status}</option>`,
+            )
+            .join('')}
+        </select>
+      </label>
+      <div class="config-note">
+        <strong>Current step</strong>
+        <p>${activeNode.currentSubtitle}</p>
+      </div>
+    `
+  }
+}
+
+async function commitGraph(nextGraph: GraphDocument) {
+  currentGraph = nextGraph
+  selection = selection.filter((item) => nextGraph.nodes.some((node) => node.id === item.id))
+  ensureActiveNode()
+  renderPanels()
+  await editor.setGraph(nextGraph)
+}
+
+function ensureActiveNode() {
+  const builderNodes = getProductDemoBuilderNodes(currentGraph)
+
+  if (builderNodes.length === 0) {
+    return
+  }
+
+  if (!builderNodes.some((node) => node.id === activeNodeId)) {
+    activeNodeId = builderNodes[0].id
+  }
+}
+
+function isBuilderNodeId(value: string | undefined): value is ProductDemoBuilderNodeId {
+  return (
+    value === 'trigger' ||
+    value === 'classify' ||
+    value === 'research' ||
+    value === 'review' ||
+    value === 'publish' ||
+    value === 'action' ||
+    value === 'action-2' ||
+    value === 'action-3'
+  )
+}
+
+function isOptionalNodeFamily(
+  value: string | undefined,
+): value is ProductDemoOptionalNodeFamily {
+  return value === 'review' || value === 'action'
 }

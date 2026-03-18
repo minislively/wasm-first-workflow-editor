@@ -99,6 +99,32 @@ export const editorShellStyles = `
     min-height: 0;
   }
 
+  .shell.stage-only .body {
+    grid-template-columns: 1fr;
+  }
+
+  .shell.stage-only .brand,
+  .shell.stage-only .stage-note {
+    display: none;
+  }
+
+  .shell.stage-only .topbar {
+    justify-content: flex-end;
+    padding: 0.7rem 0.85rem;
+    gap: 0.45rem;
+  }
+
+  .shell.stage-only .toolbar button,
+  .shell.stage-only .stat-pill {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.84rem;
+  }
+
+  .shell.stage-only .rail,
+  .shell.stage-only .inspector {
+    display: none;
+  }
+
   .rail,
   .inspector {
     padding: 1.2rem;
@@ -143,6 +169,10 @@ export const editorShellStyles = `
     position: relative;
     min-height: 0;
     overflow: hidden;
+  }
+
+  .shell.stage-only .stage {
+    min-height: 760px;
   }
 
   canvas {

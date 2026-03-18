@@ -1,33 +1,37 @@
 # Public Surface Reliability
 
-This repository treats `Product Demo` and `Performance Lab` as public surfaces, not internal-only examples.
+This repository treats the `Reference App` and `Performance Example` as public example surfaces, not internal-only examples.
+`Reference App` is the primary embed example. `Performance Example` is the proof surface that validates the runtime behind it.
 
 The reliability rule is simple:
 
 - if a control or interaction is visible, the runtime behavior should match that promise
-- if a capability is degraded, experimental, or unavailable, the UI and docs should say so directly
+- if a capability is constrained, experimental, or unavailable, the UI and docs should say so directly
 
 ## Surface split
 
-### Product Demo
+### Reference App
 
-`apps/demo-web-component` is the first-run product surface:
+`apps/demo-web-component` is the first-run reference surface:
 
-- fixed `basic` fixture
-- editable baseline
-- lightweight runtime snapshot
-- no lab controls, fixture toggles, or diagnostics-heavy evaluation panels
+- constrained builder shell around the `basic` graph
+- editing-capable stage baseline with side-panel configuration
+- template-first starter flow inside the builder surface
+- constrained add/remove of the supported approval and follow-up node families
+- lightweight runtime snapshot instead of diagnostics-heavy evaluation panels
+- representative story for how an adopter would embed the foundation in a real shell
 
 This keeps the visible contract narrow enough to stay trustworthy.
 
-### Performance Lab
+### Performance Example
 
-`apps/performance-lab` is the evaluation surface:
+`apps/performance-lab` is the evaluation example:
 
 - public fixtures: `basic / 100 / 500 / 1000`
 - explicit runtime controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active diagnostics rows
 - explicit fallback reporting when the preferred runtime path is unavailable
+- heavier-fixture proof surface rather than the primary product pitch
 
 This surface is where heavier fixture behavior should be interpreted.
 
@@ -35,38 +39,40 @@ This surface is where heavier fixture behavior should be interpreted.
 
 The current codebase supports these public expectations:
 
-- `basic` is the product-oriented editable baseline
+- `basic` is the product-oriented editable builder baseline
 - `100` is the default lab baseline for editing and diagnostics comparison
-- `500 / 1000` default to read-only degraded mode with explicit tier-policy messaging
+- `500 / 1000` default to the Supported read-only contract with explicit tier-policy messaging
+- Reference App exposes stage interaction, host-owned config flow, and constrained add/remove controls without taking over the graph hot path
 - diagnostics expose backend, kernel source, counts, zoom, and fallback state through public events
-- browser tests cover the visible split between Product Demo and Performance Lab, plus runtime diagnostics honesty
+- browser tests cover the example-shell promises plus the visible split between Reference App and Performance Example
 
 ## Heavy-tier reliability contract
 
-The reliability-oriented PRD asks for `500 / 1000` to be degraded-by-default unless explicitly justified. The current tree implements that policy in the public lab surface:
+The reliability-oriented PRD asks for `500 / 1000` to remain Supported with a constrained default unless explicitly justified. The current tree implements that policy in the public lab surface:
 
 - `apps/performance-lab` still defaults to `fixture=100` and `editability=editable`
 - switching to `500` or `1000` forces the default public mode back to `read-only`
-- the UI labels those tiers as degraded-by-default and offers an explicit opt-in for experimental editing
+- the UI labels those tiers as Supported and offers an explicit opt-in for Experimental editing
 - diagnostics keep requested and active state visible so the override remains honest
 
-Public docs should therefore describe `500 / 1000` as degraded evaluation fixtures, not as proof of equally trustworthy editing maturity.
+Public docs should therefore describe `500 / 1000` as Supported evaluation fixtures, not as proof of equally trustworthy Guaranteed editing maturity.
 
 ## Host vs engine contract
 
 Reliability depends on keeping the architecture boundary intact:
 
-- host owns routing, persistence, shell layout, inspector UI, and API-driven flows
+- host owns routing, persistence, shell layout, side-panel config UI, constrained builder actions, and API-driven flows
 - engine owns pointer handling, drag loops, selection mechanics, hit testing, pan/zoom, and graph-stage rendering
 
-The `Web Component` contract remains the primary public integration path. React stays a secondary host wrapper, not the graph hot path owner.
+The `Web Component` contract remains the primary public integration path. React stays a secondary host wrapper, not the graph hot path owner or the main product narrative.
 
 ## Template-first public story
 
 Near-term public guidance should stay template-first:
 
-- start from a runnable example flow
-- let adopters swap API nodes, settings, and host-owned shell wiring
+- start from a runnable builder-oriented starter flow
+- let adopters swap supported node presets, settings, and host-owned shell wiring
+- keep add/remove behavior limited to the approved node families that snap into the builder seam
 - avoid overselling broad freeform editing where reliability still depends on fixture size and runtime conditions
 
 This keeps the public promise aligned with the current trustworthy baseline.

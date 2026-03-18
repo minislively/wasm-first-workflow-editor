@@ -4,9 +4,9 @@ This repository is still early, so the public promise is bounded.
 
 ## v0 benchmark fixtures
 
-- `100` nodes: sanity and smoke
-- `500` nodes: routine editing baseline
-- `1000` nodes: early stress baseline
+- `100` nodes: Guaranteed editable baseline for sanity and smoke
+- `500` nodes: Supported heavy-tier evaluation with a read-only default
+- `1000` nodes: Supported heavy-viewing evaluation with a read-only default
 
 ## What the baseline means today
 
@@ -19,5 +19,6 @@ This repository is still early, so the public promise is bounded.
 - no hard FPS guarantee is published in `v0`
 - no `3000+` node public promise yet
 - no claim that current TypeScript placeholders equal the target Rust/WASM kernel path
+- no claim that Supported heavy tiers are equivalent to the Guaranteed editable baseline
 
 The purpose of `v0` is to make the performance architecture credible and testable before stronger numerical promises are made.

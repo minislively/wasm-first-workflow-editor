@@ -1,120 +1,120 @@
 # WASM-First Workflow Editor
 
-Framework-agnostic, embeddable, WASM-first workflow editor monorepo.
+Embeddable workflow/agent builder foundation for web apps.
 
 [![verify](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml/badge.svg)](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml)
 
 ![Web Component demo](./docs/assets/web-component-demo.png)
 
-## v0 promise
-
-This repository does not promise infinite scale. It promises a measurable baseline:
-
-- `Web Component` is the primary integration path
-- `React` stays a secondary host wrapper
-- the graph stage stays on an engine-shaped path
-- a runnable minimum demo exists from a clean checkout
-- benchmark fixtures for `100`, `500`, and `1000` nodes are committed
-
-## Why this exists
-
-Most node editors let shell convenience leak into the graph hot path. This repository does the opposite:
-
-- the graph stage is treated like a scene engine
-- the host shell stays open for branding and integration
-- the primary adoption path is `Web Component`, not framework lock-in
-
-## What ships in this baseline
-
-- Runnable `Web Component` demo
-- Runnable `React` host demo
-- Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
-- Architecture, adoption, and performance-boundary docs
-
-## Product Demo
-
-Use `apps/demo-web-component` when you want to understand the editor as a product:
-
-- small default graph
-- direct editing feel
-- template-first example swaps for guided API-style flows
-- lightweight runtime feedback
-- clear `Web Component`-first story
-
-Run it with:
+## Start here
 
 ```bash
+pnpm install
 pnpm demo:web-component
 ```
 
-## Performance Lab
+This launches the primary **Reference App** for the `Web Component` integration path.
 
-Use `apps/performance-lab` when you want to evaluate runtime behavior:
+## What this repo is for
 
-- dedicated app instead of an in-page mode toggle
+- reusable workflow/agent builder runtime packages
+- `Web Component` as the primary integration surface
+- `React` as a secondary host wrapper
+- a WASM kernel seam with a safe TypeScript fallback
+- reference examples for embedding and runtime evaluation
+
+## What this repo is not
+
+- not a hosted collaboration product
+- not a deployment control plane
+- not a finished support / sales / ops SaaS
+
+Support / sales / ops flows in this repository are **reference domains**, not the only intended domains.
+
+## Examples
+
+- `Reference App` — `pnpm demo:web-component`
+- `Performance Example` — `pnpm demo:performance-lab`
+- `React Example` — `pnpm demo:react`
+
+## Current baseline
+
+- `Web Component` is the primary path
+- `React` is a secondary host wrapper
+- benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+- the runtime keeps a clear `rust-wasm` vs `typescript-fallback` seam
+
+For the OSS positioning and boundary details, see [Open source model](./docs/product/open-source-model.md).
+
+## Reference App
+
+Use `apps/demo-web-component` when you want the clearest example of the primary embed path:
+
+- constrained builder shell with a real stage plus side-panel config flow
+- template-first starter flow inside the reference surface
+- constrained add/remove controls for the supported approval and follow-up node families
+- lightweight runtime feedback without evaluation-surface diagnostics
+- representative `Web Component`-first example with `React` kept secondary
+
+## Performance Example
+
+Use `apps/performance-lab` when you want to verify runtime behavior separately from the main reference surface:
+
+- dedicated evaluation app instead of an in-page mode toggle
 - fixture selector for `basic / 100 / 500 / 1000`
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
-- degraded-by-default heavy tiers with an explicit experimental-editing opt-in
-- syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
-- benchmark-oriented reading of the same editor contract
+- Supported heavy tiers with an explicit Experimental-editing opt-in
+- benchmark-oriented runtime proof surface
 
-The lab is a truth surface, not a marketing surface:
+## React Example
 
-- visible controls should match actual runtime behavior
-- requested and active runtime state should stay side by side
-- heavier fixtures should be evaluated with explicit diagnostics, not implied maturity
-- current repo state keeps `100` as the default editable baseline and downgrades `500 / 1000` to degraded viewer mode by default
-
-Run it with:
-
-```bash
-pnpm demo:performance-lab
-```
+Use `apps/demo-react-host` when the surrounding shell already lives in React and you want to see the secondary host wrapper in isolation.
 
 Default state model:
 
-- `Product Demo`: fixed `basic` fixture, editable interactions, lightweight runtime snapshot
-- `Performance Lab`: `fixture=100`, `editability=editable`, full diagnostics
+- `Reference App`: builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
+- `Performance Example`: proof-oriented `fixture=100`, `editability=editable`, full diagnostics
 
 Evaluation guidance:
 
 - compare `requested` and `active` runtime rows after changing renderer or kernel preferences
 - treat `Fallback visible` as a first-class result, not a hidden error
-- treat `500` and `1000` as navigation-first tiers unless you explicitly opt into experimental editing
+- treat `500` and `1000` as Supported navigation-first tiers unless you explicitly opt into Experimental editing
 - keep the public fixture promise bounded to `100 / 500 / 1000` until heavier scenarios are explicitly validated
 
 Recommended evaluation path:
 
-1. Start in `Performance Lab` and confirm the current renderer, kernel source, and fallback state.
+1. Start in `Performance Example` and confirm the current renderer, kernel source, and fallback state.
 2. Step through the public fixtures `100`, `500`, and `1000`.
 3. Compare `rendererPreference` and `kernelPreference` in `auto` versus forced modes.
-4. Confirm `500` and `1000` enter degraded read-only mode by default, then enable experimental editing only if you are intentionally probing beyond the trustworthy baseline.
+4. Confirm `500` and `1000` enter the Supported read-only default by default, then enable Experimental editing only if you are intentionally probing beyond the trustworthy baseline.
 5. Switch `editability` to `read-only` on lighter tiers if your target integration is a viewer rather than an editor.
 
 ## Public Reliability Contract
 
-The public surfaces are intentionally split:
+The public example surfaces are intentionally split:
 
-- `Product Demo`: trustworthy first-run surface, fixed to the `basic` graph and lightweight runtime feedback
-- `Performance Lab`: diagnostics-forward surface for fixture comparison and runtime preference evaluation
+- `Reference App`: trustworthy primary reference shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
+- `Performance Example`: diagnostics-forward runtime evaluation surface for fixture comparison and runtime preference evaluation
 
 Current trustworthy baseline:
 
-- `basic`: product-oriented editable baseline
+- `basic`: product-oriented editable builder baseline
 - `100`: lab-oriented editable baseline for interaction smoke and diagnostics comparison
-- `500 / 1000`: public evaluation fixtures that default to degraded viewer mode unless a host explicitly opts into experimental editing
+- `500 / 1000`: public evaluation fixtures that default to the Supported read-only contract unless a host explicitly opts into Experimental editing
 
 Near-term usage guidance:
 
-- treat `Product Demo` as the place to assess the editor feel
-- treat `Performance Lab` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
-- prefer template-first examples and host-controlled API wiring over broad freeform editing promises when presenting the project publicly
+- treat `Reference App` as the place to assess the builder shell, side-panel flow, and constrained host-owned mutations
+- treat `Performance Example` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
+- treat `React` as a supported secondary host wrapper when the surrounding product shell already lives in React
+- prefer template-first starter flows, host-controlled API wiring, and constrained add/remove seams over broad freeform editing promises when presenting the project publicly
 
 For the full surface contract, see [Public Surface Reliability](./docs/product/reliability.md).
 
-## Demo surfaces
+## Example surfaces
 
 Primary host:
 
@@ -124,6 +124,8 @@ Secondary host:
 
 ![React host](./docs/assets/react-host-demo.png)
 
+The React example exists to show shell-level integration support. It is not the primary reference surface.
+
 ## Product rule
 
 `Engine is strict, shell is flexible.`
@@ -132,7 +134,7 @@ Secondary host:
 - Product teams are expected to customize shell, inspector, toolbar, theming, and host layout.
 - Product teams are not expected to replace the graph hot path with arbitrary DOM-heavy node bodies.
 
-## Quick start
+## Full local verification
 
 ```bash
 pnpm install
@@ -169,8 +171,8 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 
 - `basic`: product-oriented default graph
 - `100`: light lab fixture
-- `500`: degraded-by-default medium evaluation fixture
-- `1000`: degraded-by-default heavy public viewing fixture
+- `500`: Supported medium evaluation fixture with a read-only default
+- `1000`: Supported heavy public viewing fixture with a read-only default
 
 ## Package map
 
@@ -183,12 +185,13 @@ If `wasm-pack` is not installed yet, `pnpm wasm:build` will explain how to insta
 - `@minislively/workflow-editor-shell`: shell theme tokens and styling contract
 - `@minislively/workflow-element`: primary `Web Component` integration surface
 - `@minislively/workflow-react`: secondary React wrapper
-- `@minislively/workflow-demo-support`: shared fixtures and diagnostics helpers for demo apps
-- `@minislively/workflow-nodepack-basic`: starter graph fixture and node catalog
+- `@minislively/workflow-demo-support`: reference-domain fixtures, diagnostics helpers, and demo metadata
+- `@minislively/workflow-nodepack-basic`: minimal starter graph fixture and node catalog
 
 ## Docs
 
 - [Architecture](./docs/architecture/overview.md)
+- [Open source model](./docs/product/open-source-model.md)
 - [Public surface reliability](./docs/product/reliability.md)
 - [Web Component adoption](./docs/adoption/web-component.md)
 - [React host guidance](./docs/adoption/react-host.md)

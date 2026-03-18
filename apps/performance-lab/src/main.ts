@@ -46,12 +46,12 @@ app.innerHTML = `
   <main class="page">
     <section class="hero-card">
       <div>
-        <p class="eyebrow">runtime evaluation surface</p>
-        <h1>Performance Lab is now a dedicated app.</h1>
+        <p class="eyebrow">runtime evaluation example</p>
+        <h1>Performance Example is a dedicated runtime check surface.</h1>
         <p class="lede">
           Load public fixtures, force runtime preferences, and inspect the active
           backend and kernel without carrying that diagnostic weight in the
-          product demo.
+          main reference app.
         </p>
       </div>
       <div class="hero-stack">
@@ -63,7 +63,7 @@ app.innerHTML = `
     <section class="surface-shell">
       <div class="surface-header">
         <div>
-          <div class="panel-label">Performance Lab</div>
+          <div class="panel-label">Performance Example</div>
           <strong class="surface-title">Evaluation mode for performance-sensitive teams</strong>
         </div>
         <div class="surface-summary">
@@ -76,7 +76,7 @@ app.innerHTML = `
           <section class="panel-card">
             <div class="panel-label">Fixture</div>
             <p class="fixture-copy">
-              <code>100</code> remains the editing-capable baseline. <code>500</code> and <code>1000</code> stay read-only until you explicitly opt into experimental heavy editing.
+              <code>100</code> remains the default Guaranteed baseline. <code>500</code> and <code>1000</code> stay in the Supported read-only default until you explicitly opt into Experimental heavy editing.
             </p>
             <div class="fixture-grid">
               <button data-fixture="basic" class="fixture-chip" type="button">Basic</button>
@@ -261,7 +261,7 @@ function renderPanels() {
   const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
   const summary = createPerformanceLabSummary(state, diagnostics)
   const fixtureContract = getFixtureInteractionContract(state.fixture)
-  const heavyTierLocked = summary.degradedByDefault && !state.allowExperimentalEditing
+  const supportedDefaultLocked = summary.hasSupportedDefault && !state.allowExperimentalEditing
   const comparisonRows = [
     {
       label: 'Editability intent',
@@ -297,13 +297,13 @@ function renderPanels() {
           detail:
             'The lab is applying the latest fixture or preference change. Compare requested and active rows after the next diagnostics event lands.',
         }
-      : heavyTierLocked
+      : supportedDefaultLocked
         ? {
             tone: 'warning',
             title: summary.capabilityTitle,
             detail: summary.capabilityDetail,
           }
-        : summary.degradedByDefault
+        : summary.hasSupportedDefault
           ? {
               tone: 'warning',
               title: summary.capabilityTitle,
@@ -330,12 +330,12 @@ function renderPanels() {
     const key = select.dataset.control as keyof RuntimePreferences
     select.value = String(state[key])
     if (key === 'editability') {
-      select.disabled = heavyTierLocked
+      select.disabled = supportedDefaultLocked
     }
   })
 
-  policyCard!.className = `panel-card policy-card ${heavyTierLocked ? 'tone-warning' : 'tone-info'}`
-  policyCard!.innerHTML = fixtureContract.tier === 'degraded-viewer'
+  policyCard!.className = `panel-card policy-card ${supportedDefaultLocked ? 'tone-warning' : 'tone-info'}`
+  policyCard!.innerHTML = fixtureContract.tier === 'supported'
     ? `
       <div class="panel-label">Tier Policy</div>
       <strong>${fixtureContract.label}</strong>
@@ -399,7 +399,7 @@ function renderPanels() {
         ['Requested editability', state.editability],
         ['Effective editability', summary.effectiveEditability],
         ['Active editability', diagnostics.preferences.editability],
-        ['Tier policy', heavyTierLocked ? 'degraded by default' : summary.degradedByDefault ? 'experimental override' : 'editing-capable'],
+        ['Tier policy', supportedDefaultLocked ? 'supported default' : summary.hasSupportedDefault ? 'experimental override' : 'guaranteed'],
         ['Fixture contract', summary.fixtureContractLabel],
         ['Requested renderer', state.rendererPreference],
         ['Active renderer pref', diagnostics.preferences.rendererPreference],
@@ -420,7 +420,7 @@ function renderPanels() {
   selectionList!.innerHTML =
     selection.length === 0
       ? `<div class="selection-empty">${
-          heavyTierLocked
+          supportedDefaultLocked
             ? `No selection. ${state.fixture} is currently navigation-only, so pan, zoom, and fixture switching stay live while editing remains gated.`
             : 'No selection. Drag, pan, zoom, and fixture switching all stay live.'
         }</div>`

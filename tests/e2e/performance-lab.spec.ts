@@ -4,10 +4,11 @@ test.use({
   baseURL: process.env.PLAYWRIGHT_PERFORMANCE_LAB_BASE_URL ?? 'http://127.0.0.1:44175',
 })
 
-test.describe('performance lab surface', () => {
+test.describe('performance example surface', () => {
   test('lab defaults to the diagnostics-forward evaluation state', async ({ page }) => {
     await page.goto('/')
 
+    await expect(page.getByText('Performance Example', { exact: true })).toBeVisible()
     await expect(
       page.getByText('Evaluation mode for performance-sensitive teams'),
     ).toBeVisible()
@@ -23,21 +24,21 @@ test.describe('performance lab surface', () => {
 
     const diagnostics = page.locator('.diag-grid')
     await expect(page.locator('[data-role="policy-card"]')).toContainText(
-      'Degraded-by-default viewer tier',
+      'Supported tier — constrained default',
     )
     await expect(page.locator('select[data-control="editability"]')).toBeDisabled()
-    await expect(page.locator('.evaluation-card')).toContainText('Degraded mode is active')
+    await expect(page.locator('.evaluation-card')).toContainText('Supported default is active')
     await expect(diagnostics).toContainText('Nodes')
     await expect(diagnostics).toContainText('500')
     await expect(diagnostics).toContainText('499')
-    await expect(diagnostics).toContainText('degraded by default')
-    await expect(diagnostics).toContainText('500 nodes for degraded-by-default runtime evaluation')
+    await expect(diagnostics).toContainText('supported default')
+    await expect(diagnostics).toContainText('500 nodes for Supported heavy-tier evaluation')
 
     await page.getByRole('button', { name: '1000' }).click()
     await expect(diagnostics).toContainText('1000')
     await expect(diagnostics).toContainText('999')
     await expect(diagnostics).toContainText(
-      '1000 nodes for the public heavy-viewing baseline',
+      '1000 nodes for the Supported heavy-viewing baseline',
     )
   })
 
@@ -78,5 +79,23 @@ test.describe('performance lab surface', () => {
     await expect(diagnostics).toContainText('experimental override')
     await expect(diagnostics).toContainText('Effective editability')
     await expect(diagnostics).toContainText('editable')
+  })
+
+  test('experimental heavy-tier editing re-enables stage selection after opt-in', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: '500' }).click()
+    await page.locator('input[data-control="allowHeavyEditing"]').check()
+
+    await page.locator('workflow-editor').locator('canvas').click({
+      position: { x: 120, y: 90 },
+    })
+
+    await expect(page.locator('[data-role="policy-card"]')).toContainText(
+      'Enable experimental editing for 500',
+    )
+    await expect(page.locator('.selection-list')).toContainText('Node 1')
+    await expect(page.locator('.selection-list')).toContainText('trigger')
   })
 })
