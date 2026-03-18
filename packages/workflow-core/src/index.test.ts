@@ -48,6 +48,48 @@ describe('workflow-core', () => {
     ])
   })
 
+  it('keeps compatibility order for selection summaries based on graph node order', () => {
+    const orderedGraph: GraphDocument = {
+      version: '1',
+      nodes: [
+        {
+          id: 'a',
+          type: 'trigger',
+          title: 'Trigger',
+          status: 'ready',
+          position: { x: 10, y: 20 },
+          size: { width: 120, height: 72 },
+          color: '#f97316',
+        },
+        {
+          id: 'b',
+          type: 'publish',
+          title: 'Publish',
+          status: 'idle',
+          position: { x: 200, y: 100 },
+          size: { width: 120, height: 72 },
+          color: '#38bdf8',
+        },
+      ],
+      edges: [],
+    }
+
+    expect(getSelectionSummary(orderedGraph, ['b', 'a'])).toEqual([
+      {
+        id: 'a',
+        title: 'Trigger',
+        type: 'trigger',
+        status: 'ready',
+      },
+      {
+        id: 'b',
+        title: 'Publish',
+        type: 'publish',
+        status: 'idle',
+      },
+    ])
+  })
+
   it('zooms around an anchor without changing the anchor world point', () => {
     const anchor = { x: 200, y: 100 }
     const before = screenToWorld(anchor, defaultViewport)
