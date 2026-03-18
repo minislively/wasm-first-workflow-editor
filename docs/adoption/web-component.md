@@ -1,7 +1,7 @@
 # Web Component Adoption
 
-`@minislively/workflow-element` is the primary integration surface and the path behind the representative Product Demo.
-Use it when you want the repo to read first as a production-ready agent builder foundation and only second as a runtime proof story.
+`@minislively/workflow-element` is the primary integration surface and the path behind the main Reference App.
+Use it when you want the repo to read first as an embeddable builder foundation and only second as a runtime proof story.
 
 ## Why this is primary
 
@@ -57,8 +57,8 @@ await editor.setGraph(graph)
 
 That keeps the host responsible for guided example variants while the engine still owns stage interaction and rendering.
 
-Treat this surface as the default adoption path before reaching for framework-specific wrappers. It is the clearest way to reproduce the Product Demo contract in a real product shell.
-Use `apps/performance-lab` afterward to validate fixture behavior, fallback visibility, and requested-vs-active runtime state without turning that diagnostic posture into the main product narrative.
+Treat this surface as the default adoption path before reaching for framework-specific wrappers. It is the clearest way to reproduce the Reference App contract in a real shell.
+Use `apps/performance-lab` afterward to validate fixture behavior, fallback visibility, and requested-vs-active runtime state without turning that diagnostic posture into the main entry narrative.
 
 ## Event contract
 

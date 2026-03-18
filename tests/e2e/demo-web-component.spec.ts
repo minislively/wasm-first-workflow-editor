@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('product demo web component surface', () => {
+test.describe('reference app web component surface', () => {
   test('keeps practical workflow controls above the fold on first render', async ({
     page,
   }) => {
@@ -20,18 +20,18 @@ test.describe('product demo web component surface', () => {
   test('renders the builder-first shell for the starter flow', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText('Production Agent Builder')).toBeVisible()
+    await expect(page.getByText('Embeddable Workflow Builder Reference')).toBeVisible()
     await expect(
       page.getByText(
-        'A representative builder shell your team can drop into a product and evaluate immediately.',
+        'Start here to see the primary Web Component integration path in a builder-shaped reference shell.',
       ),
     ).toBeVisible()
     await expect(page.getByText('Node Inspector', { exact: true })).toBeVisible()
     await expect(page.getByText('Starter template')).toBeVisible()
     await expect(
-      page.getByText('See the stage, inspect each step, and tune the starter flow in place.'),
+      page.getByText('See the stage, inspect each step, and adapt the reference flow in place.'),
     ).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Performance Example' })).toHaveCount(0)
     await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
     await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)
     await expect(page.locator('workflow-editor')).toHaveCount(1)

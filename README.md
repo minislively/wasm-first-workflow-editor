@@ -1,29 +1,33 @@
 # WASM-First Workflow Editor
 
-Production-ready, embeddable agent builder foundation with a WASM-first runtime path.
+Embeddable workflow/agent builder foundation for web apps.
 
 [![verify](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml/badge.svg)](https://github.com/minislively/wasm-first-workflow-editor/actions/workflows/verify.yml)
 
 ![Web Component demo](./docs/assets/web-component-demo.png)
 
-## v0 promise
+## Start here
 
-This repository does not promise infinite scale. It promises a builder teams can adopt quickly with a measurable runtime baseline:
+```bash
+pnpm install
+pnpm demo:web-component
+```
 
-- `Web Component` is the primary integration path
-- `React` stays a secondary host wrapper
-- the graph stage stays on an engine-shaped path
-- a runnable minimum demo exists from a clean checkout
-- benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+This launches the primary **Reference App** for the `Web Component` integration path.
 
-## Why this exists
+## What this repository provides
 
-Most node editors make it hard to ship a branded builder without letting shell convenience leak into the graph hot path. This repository does the opposite:
+- reusable workflow/agent builder runtime packages
+- `Web Component` as the primary integration surface
+- `React` as a secondary host wrapper
+- a WASM kernel seam with a safe TypeScript fallback
+- reference examples for embedding and runtime evaluation
 
-- Product Demo shows the representative product screen teams can adapt into their own service
-- Performance Lab proves the runtime, fallback, and heavier-fixture behavior behind that product promise
-- the graph stage is treated like a scene engine while the host shell stays open for branding and integration
-- the primary adoption path is `Web Component`, not framework lock-in
+## What this repository is not
+
+This repository is not a hosted collaboration product, deployment control plane, or finished support/sales/ops SaaS.
+
+It is the reusable builder foundation plus a small set of reference examples.
 
 ## Open source boundary
 
@@ -40,12 +44,12 @@ The open-source contract is the reusable builder foundation:
 - `Web Component` and `React` adapters
 - reference demo apps that show how the foundation behaves
 
-### What the demos mean
+### What the examples mean
 
-The demos are **reference domains**, not the only product this repo can represent.
+The examples are **reference surfaces**, not the only product this repo can represent.
 
-- `Product Demo` shows one builder-shaped shell teams can adapt
-- `Performance Lab` shows one runtime-evaluation surface teams can inspect
+- `Reference App` shows one builder-shaped shell teams can adapt
+- `Performance Example` shows one runtime-evaluation surface teams can inspect
 - template choices such as support / sales / ops are examples of how a domain can be expressed on top of the foundation
 
 That means adopters are expected to bring their own domain:
@@ -67,60 +71,56 @@ This repo does **not** currently claim to be a full managed product for:
 
 Those can exist later as product layers, but the repository itself is the reusable core plus reference surfaces.
 
-## What ships in this baseline
+## Examples
 
-- Runnable `Product Demo` app on the primary `Web Component` path
-- Runnable `Performance Lab` proof surface
-- Runnable `React` host demo for secondary integration support
-- Package seams for core, worker runtime, renderers, shell, custom element, and React adapter
-- Architecture, adoption, and performance-boundary docs
+- `Reference App` (`pnpm demo:web-component`) — start here
+- `Performance Example` (`pnpm demo:performance-lab`) — runtime evaluation surface
+- `React Example` (`pnpm demo:react`) — secondary host example
 
-## Product Demo
+## Reference domains
 
-Use `apps/demo-web-component` when you want to understand the editor as the product your team would actually embed:
+Support / sales / ops flows in this repository are **reference domains**.
+
+They show how a real domain can sit on top of the foundation, but they are not the only intended domains.
+
+## Current runtime baseline
+
+- `Web Component` is the primary integration path
+- `React` stays a secondary host wrapper
+- the graph stage stays on an engine-shaped path
+- a runnable minimum example exists from a clean checkout
+- benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+
+## Reference App
+
+Use `apps/demo-web-component` when you want the clearest example of the primary embed path:
 
 - constrained builder shell with a real stage plus side-panel config flow
-- template-first starter flow inside the builder surface
+- template-first starter flow inside the reference surface
 - constrained add/remove controls for the supported approval and follow-up node families
-- lightweight runtime feedback without lab-style diagnostics overload
-- representative `Web Component`-first product story with `React` kept secondary
+- lightweight runtime feedback without evaluation-surface diagnostics
+- representative `Web Component`-first example with `React` kept secondary
 
-Run it with:
+## Performance Example
 
-```bash
-pnpm demo:web-component
-```
+Use `apps/performance-lab` when you want to verify runtime behavior separately from the main reference surface:
 
-## Performance Lab
-
-Use `apps/performance-lab` when you want to verify the runtime behavior behind the product surface:
-
-- dedicated app instead of an in-page mode toggle
+- dedicated evaluation app instead of an in-page mode toggle
 - fixture selector for `basic / 100 / 500 / 1000`
 - diagnostics for backend, kernel source, node count, edge count, zoom, and fallback reason
 - explicit controls for `editability`, `rendererPreference`, and `kernelPreference`
 - requested-vs-active runtime rows so forced preferences can be compared against what the engine actually resolved
 - Supported heavy tiers with an explicit Experimental-editing opt-in
-- syncing and fallback callouts so evaluators can tell when a fixture/control change is still in flight
-- benchmark-oriented proof surface for the same editor contract
+- benchmark-oriented runtime proof surface
 
-The lab is a proof surface, not the main product face:
+## React Example
 
-- visible controls should match actual runtime behavior
-- requested and active runtime state should stay side by side
-- heavier fixtures should be evaluated with explicit diagnostics, not implied maturity
-- current repo state keeps `100` as the default Guaranteed editable baseline and keeps `500 / 1000` in the Supported read-only default by default
-
-Run it with:
-
-```bash
-pnpm demo:performance-lab
-```
+Use `apps/demo-react-host` when the surrounding shell already lives in React and you want to see the secondary host wrapper in isolation.
 
 Default state model:
 
-- `Product Demo`: representative builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
-- `Performance Lab`: proof-oriented `fixture=100`, `editability=editable`, full diagnostics
+- `Reference App`: builder-first `basic` surface with stage interaction, side-panel config, constrained add/remove, and lightweight runtime snapshot
+- `Performance Example`: proof-oriented `fixture=100`, `editability=editable`, full diagnostics
 
 Evaluation guidance:
 
@@ -131,7 +131,7 @@ Evaluation guidance:
 
 Recommended evaluation path:
 
-1. Start in `Performance Lab` and confirm the current renderer, kernel source, and fallback state.
+1. Start in `Performance Example` and confirm the current renderer, kernel source, and fallback state.
 2. Step through the public fixtures `100`, `500`, and `1000`.
 3. Compare `rendererPreference` and `kernelPreference` in `auto` versus forced modes.
 4. Confirm `500` and `1000` enter the Supported read-only default by default, then enable Experimental editing only if you are intentionally probing beyond the trustworthy baseline.
@@ -139,10 +139,10 @@ Recommended evaluation path:
 
 ## Public Reliability Contract
 
-The public surfaces are intentionally split:
+The public example surfaces are intentionally split:
 
-- `Product Demo`: trustworthy representative product shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
-- `Performance Lab`: diagnostics-forward proof surface for fixture comparison and runtime preference evaluation
+- `Reference App`: trustworthy primary reference shell for the `basic` graph, with a stage, host-owned config panel, and constrained node actions
+- `Performance Example`: diagnostics-forward runtime evaluation surface for fixture comparison and runtime preference evaluation
 
 Current trustworthy baseline:
 
@@ -152,14 +152,14 @@ Current trustworthy baseline:
 
 Near-term usage guidance:
 
-- treat `Product Demo` as the place to assess the builder shell, side-panel flow, and constrained host-owned mutations
-- treat `Performance Lab` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
+- treat `Reference App` as the place to assess the builder shell, side-panel flow, and constrained host-owned mutations
+- treat `Performance Example` as the place to assess runtime selection, fallback visibility, and heavier fixture behavior
 - treat `React` as a supported secondary host wrapper when the surrounding product shell already lives in React
 - prefer template-first starter flows, host-controlled API wiring, and constrained add/remove seams over broad freeform editing promises when presenting the project publicly
 
 For the full surface contract, see [Public Surface Reliability](./docs/product/reliability.md).
 
-## Demo surfaces
+## Example surfaces
 
 Primary host:
 
@@ -169,7 +169,7 @@ Secondary host:
 
 ![React host](./docs/assets/react-host-demo.png)
 
-The React demo exists to show shell-level integration support. It is not the representative product screen.
+The React example exists to show shell-level integration support. It is not the primary reference surface.
 
 ## Product rule
 
@@ -179,7 +179,7 @@ The React demo exists to show shell-level integration support. It is not the rep
 - Product teams are expected to customize shell, inspector, toolbar, theming, and host layout.
 - Product teams are not expected to replace the graph hot path with arbitrary DOM-heavy node bodies.
 
-## Quick start
+## Full local verification
 
 ```bash
 pnpm install

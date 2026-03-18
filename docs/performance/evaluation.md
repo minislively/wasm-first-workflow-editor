@@ -1,6 +1,6 @@
 # Performance Evaluation Guide
 
-Use `apps/performance-lab` when you need evidence about runtime behavior, not just a first-run product feel.
+Use `apps/performance-lab` when you need evidence about runtime behavior, not just a first-run reference-app feel.
 
 ## What to evaluate
 
@@ -12,7 +12,7 @@ Use `apps/performance-lab` when you need evidence about runtime behavior, not ju
 
 ## Recommended lab flow
 
-1. Start from the dedicated `Performance Lab` app, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
+1. Start from the dedicated `Performance Example` app, which defaults to `fixture=100`, `editability=editable`, and full diagnostics.
 2. Confirm the diagnostics panel shows the active renderer, kernel source, and current preferences before changing anything.
 3. Step through `100`, `500`, and `1000` to observe node count, edge count, and zoom behavior under the same surface contract.
 4. Verify that `500` and `1000` stay in the Supported read-only default before enabling any Experimental heavy-tier editing.

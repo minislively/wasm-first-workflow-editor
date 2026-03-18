@@ -16,10 +16,10 @@ test('react host mounts the shared editor contract', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Host activity' })).toBeVisible()
   await expect(page.locator('workflow-editor')).toHaveCount(1)
   await expect(page.getByText('Host ready: React is hosting the same custom element contract')).toBeVisible()
-  await expect(page.getByText('Product Demo Playground')).toHaveCount(0)
+  await expect(page.getByText('Reference App Playground')).toHaveCount(0)
   await expect(
     page.getByText('Evaluation mode for performance-sensitive teams'),
   ).toHaveCount(0)
-  await expect(page.getByText('Performance Lab', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Performance Example', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
 })
