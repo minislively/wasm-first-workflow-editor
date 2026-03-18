@@ -2,6 +2,21 @@
 
 - 
 
+## Why
+
+- 
+
+## Scope
+
+- [ ] core runtime
+- [ ] wasm seam
+- [ ] renderer
+- [ ] worker
+- [ ] adapter
+- [ ] example app
+- [ ] docs
+- [ ] tooling
+
 ## Verification
 
 - [ ] `pnpm typecheck`
@@ -16,3 +31,7 @@
 - [ ] Graph hot path remains on the engine side
 - [ ] `Web Component` remains the primary integration surface
 - [ ] No arbitrary DOM-heavy node body behavior was introduced
+
+## Notes
+
+- 
