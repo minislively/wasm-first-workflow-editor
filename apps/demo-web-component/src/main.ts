@@ -3,17 +3,12 @@ import './style.css'
 import { createWorkflowEditor } from '@minislively/workflow-element'
 import {
   addProductDemoOptionalNode,
-  applyReadyDiagnostics,
-  applyStatsDiagnostics,
-  createInitialDiagnosticsState,
   getProductDemoBuilderNodes,
   getProductDemoGraph,
   getProductDemoOptionalNodeOptions,
   getProductDemoTemplateOptions,
   getProductDemoTemplateSummary,
   removeProductDemoOptionalNode,
-  setProductDemoNodePreset,
-  setProductDemoNodeStatus,
   setProductDemoTemplate,
   type ProductDemoBuilderNodeId,
   type ProductDemoOptionalNodeFamily,
@@ -21,96 +16,245 @@ import {
 } from '@minislively/workflow-demo-support'
 import type { EngineEvent, GraphDocument, SelectionSummary } from '@minislively/workflow-types'
 
-const app = document.querySelector<HTMLDivElement>('#app')
+const appRoot = document.querySelector<HTMLDivElement>('#app')
 
-if (!app) {
+if (!appRoot) {
   throw new Error('App root was not found.')
 }
 
-let diagnostics = createInitialDiagnosticsState({
-  editability: 'editable',
-  rendererPreference: 'auto',
-  kernelPreference: 'auto',
-})
+const root = appRoot
 
-let selection: SelectionSummary[] = []
-const productDemoTemplates = getProductDemoTemplateOptions()
-let templateState: ProductDemoTemplateKey = productDemoTemplates[0]?.key ?? 'support-triage'
+type EditorController = Awaited<ReturnType<typeof createWorkflowEditor>>
+
+type RuntimeProof = {
+  backend: string
+  kernel: string
+  fallback: string
+  stats: string
+}
+
+type QuickActionKey = 'focus-trigger' | 'focus-context' | 'focus-publish' | 'toggle-review' | 'toggle-follow-up'
+
+const templateOptions = getProductDemoTemplateOptions()
+let templateState: ProductDemoTemplateKey = templateOptions[0]?.key ?? 'support-triage'
 let currentGraph: GraphDocument = getProductDemoGraph(templateState)
 let activeNodeId: ProductDemoBuilderNodeId = 'trigger'
+let selection: SelectionSummary[] = []
+let editorController: EditorController | null = null
+let runtimeProof: RuntimeProof = {
+  backend: 'Detecting renderer',
+  kernel: 'Waiting for engine ready',
+  fallback: 'Fallback visible enabled',
+  stats: 'Syncing graph runtime',
+}
 
-app.innerHTML = `
-  <main class="page">
-    <section class="mission-strip">
-      <p class="eyebrow">Product Demo</p>
-      <h1>Production Agent Builder</h1>
-      <p class="mission-copy">
-        A representative builder shell your team can drop into a product and evaluate immediately.
-      </p>
-    </section>
-    <section class="surface-shell">
-      <div class="surface-layout">
-        <section class="canvas-column">
-          <section class="editor-shell">
-            <div class="builder-banner">
-              <div class="builder-banner-copy">
-                <div class="panel-label">Live Canvas</div>
-                <strong>See the stage, inspect each step, and tune the starter flow in place.</strong>
-              </div>
-              <div class="builder-banner-meta">
-                <p>The product-facing builder surface stays interactive without turning into a lab console.</p>
-              </div>
-              <div class="builder-banner-controls">
-                <label class="template-picker">
-                  <span>Starter template</span>
-                  <select data-builder-control="template">
-                    ${productDemoTemplates
-                      .map(
-                        (template) =>
-                          `<option value="${template.key}">${template.label}</option>`,
-                      )
-                      .join('')}
-                  </select>
-                </label>
-                <div class="optional-node-controls" data-role="optional-node-controls"></div>
-              </div>
-            </div>
-            <div id="mount"></div>
-          </section>
-          <section class="control-strip">
-            <div class="template-summary" data-role="template-summary"></div>
-          </section>
-        </section>
-        <aside class="config-sidebar">
-          <section class="panel-card config-card">
-            <div class="panel-label">Node Inspector</div>
-            <strong data-role="config-title">Select a builder step</strong>
-            <p class="panel-copy" data-role="config-copy">
-              Adjust the selected step from the host-owned side panel.
-            </p>
-            <div class="config-form" data-role="config-form"></div>
-            <div class="runtime-card">
-              <div class="panel-label">Runtime Context</div>
-              <strong data-role="runtime-title">Booting editor runtime...</strong>
-              <p class="panel-copy" data-role="runtime-copy">
-                Waiting for the custom element to report backend, kernel, and fallback state.
-              </p>
-            </div>
-          </section>
-        </aside>
+root.innerHTML = `
+  <main class="product-shell">
+    <header class="product-chrome">
+      <div class="chrome-left">
+        <a class="chrome-back" href="/docs/adoption/web-component.md" aria-label="Open embed guide">←</a>
+        <div class="title-block">
+          <p class="eyebrow">Constrained production builder</p>
+          <div class="title-row">
+            <h1>Trusted flow builder for embedded agent products</h1>
+            <span class="badge">Experiment</span>
+          </div>
+          <p class="lede">
+            This is a template-backed builder: choose a proven flow, adjust trusted steps, add supported branches, and verify the outcome before shipping it into your product shell.
+          </p>
+        </div>
       </div>
+      <div class="chrome-actions">
+        <span class="truth-chip">Template-backed editing</span>
+        <span class="truth-chip">Runtime-safe canvas</span>
+        <a class="ghost-chip" href="/docs/adoption/web-component.md">Embed guide</a>
+        <a class="ghost-chip" href="http://127.0.0.1:44175/">Runtime Lab</a>
+      </div>
+    </header>
+
+    <section class="workspace-shell">
+      <section class="builder-stage" aria-label="Builder surface">
+        <div class="builder-topbar">
+          <div>
+            <p class="eyebrow">Choose a trusted starting flow</p>
+            <div class="template-strip" data-role="template-strip"></div>
+          </div>
+          <div class="runtime-strip">
+            <span class="runtime-pill" data-role="runtime-backend"></span>
+            <span class="runtime-pill" data-role="runtime-kernel"></span>
+            <span class="runtime-pill" data-role="runtime-fallback"></span>
+          </div>
+        </div>
+
+        <div class="stage-frame">
+          <aside class="floating-rail">
+            <div class="rail-section">
+              <p class="rail-label">Editable flow steps</p>
+              <div class="flow-list" data-role="flow-list"></div>
+            </div>
+            <div class="rail-section">
+              <p class="rail-label">Allowed branches</p>
+              <div class="option-list" data-role="optional-list"></div>
+            </div>
+          </aside>
+
+          <section class="canvas-surface">
+            <div class="canvas-head">
+              <div>
+                <p class="eyebrow">Trusted graph stage</p>
+                <h2 data-role="canvas-title"></h2>
+                <p class="canvas-copy">Use the rail and supported quick actions to steer this flow without breaking the runtime-safe stage contract.</p>
+              </div>
+              <div class="canvas-actions">
+                <button class="utility-button" data-open-link="runtime-lab" type="button">Diagnostics</button>
+                <button class="utility-button" data-open-link="embed-guide" type="button">Docs</button>
+              </div>
+            </div>
+            <div class="mount-shell" id="mount"></div>
+            <div class="quick-actions" aria-label="Supported quick actions">
+              <div class="command-copy">
+                <span class="eyebrow">Supported quick actions</span>
+                <strong>These are real constrained edits, not free-form builder prompts.</strong>
+              </div>
+              <div class="quick-action-list">
+                <button class="quick-action-button" data-quick-action="focus-trigger" type="button">Focus trigger</button>
+                <button class="quick-action-button" data-quick-action="focus-context" type="button">Focus context step</button>
+                <button class="quick-action-button" data-quick-action="focus-publish" type="button">Focus publish step</button>
+                <button class="quick-action-button" data-quick-action="toggle-review" type="button">Toggle review gate</button>
+                <button class="quick-action-button" data-quick-action="toggle-follow-up" type="button">Toggle follow-up branch</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="preview-pane" aria-label="App preview">
+        <div class="preview-tabs">
+          <span class="preview-tab is-active">Result</span>
+          <span class="preview-tab">Focused step</span>
+          <span class="preview-tab">Apply</span>
+        </div>
+        <div class="preview-card">
+          <div class="preview-hero">
+            <p class="preview-kicker" data-role="preview-kicker"></p>
+            <h2 data-role="preview-title"></h2>
+            <p data-role="preview-summary"></p>
+          </div>
+          <div class="preview-art">
+            <div class="preview-orb orb-a"></div>
+            <div class="preview-orb orb-b"></div>
+            <div class="preview-frame">
+              <span class="meta-label">Current step outcome</span>
+              <strong data-role="preview-node-title"></strong>
+              <span data-role="preview-node-subtitle"></span>
+            </div>
+          </div>
+          <div class="preview-meta">
+            <div>
+              <span class="meta-label">Target team</span>
+              <strong data-role="preview-team"></strong>
+            </div>
+            <div>
+              <span class="meta-label">Deploy target</span>
+              <strong data-role="preview-target"></strong>
+            </div>
+          </div>
+          <section class="selection-card" data-role="selection-card"></section>
+          <section class="selection-card muted-card" data-role="builder-truth-card"></section>
+          <div class="cta-stack">
+            <a class="primary-chip" href="/docs/adoption/web-component.md">Open builder embed guide</a>
+            <a class="ghost-chip strong" href="http://127.0.0.1:44175/">Open Runtime Lab</a>
+          </div>
+        </div>
+      </aside>
     </section>
   </main>
 `
 
-const mount = document.querySelector<HTMLElement>('#mount')!
+const templateStrip = query<HTMLElement>('[data-role="template-strip"]')
+const flowList = query<HTMLElement>('[data-role="flow-list"]')
+const optionalList = query<HTMLElement>('[data-role="optional-list"]')
+const runtimeBackend = query<HTMLElement>('[data-role="runtime-backend"]')
+const runtimeKernel = query<HTMLElement>('[data-role="runtime-kernel"]')
+const runtimeFallback = query<HTMLElement>('[data-role="runtime-fallback"]')
+const canvasTitle = query<HTMLElement>('[data-role="canvas-title"]')
+const previewKicker = query<HTMLElement>('[data-role="preview-kicker"]')
+const previewTitle = query<HTMLElement>('[data-role="preview-title"]')
+const previewSummary = query<HTMLElement>('[data-role="preview-summary"]')
+const previewNodeTitle = query<HTMLElement>('[data-role="preview-node-title"]')
+const previewNodeSubtitle = query<HTMLElement>('[data-role="preview-node-subtitle"]')
+const previewTeam = query<HTMLElement>('[data-role="preview-team"]')
+const previewTarget = query<HTMLElement>('[data-role="preview-target"]')
+const selectionCard = query<HTMLElement>('[data-role="selection-card"]')
+const builderTruthCard = query<HTMLElement>('[data-role="builder-truth-card"]')
+const mount = query<HTMLElement>('#mount')
+
+root.addEventListener('click', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLElement)) {
+    return
+  }
+
+  const templateButton = target.closest<HTMLButtonElement>('[data-template-key]')
+  if (templateButton) {
+    const nextTemplate = templateButton.dataset.templateKey as ProductDemoTemplateKey
+    if (nextTemplate && nextTemplate !== templateState) {
+      templateState = nextTemplate
+      currentGraph = setProductDemoTemplate(currentGraph, nextTemplate)
+      activeNodeId = 'trigger'
+      selection = []
+      void syncGraph()
+    }
+    return
+  }
+
+  const stepButton = target.closest<HTMLButtonElement>('[data-node-id]')
+  if (stepButton) {
+    const nodeId = stepButton.dataset.nodeId as ProductDemoBuilderNodeId
+    if (nodeId) {
+      activeNodeId = nodeId
+      renderShell()
+    }
+    return
+  }
+
+  const optionalButton = target.closest<HTMLButtonElement>('[data-optional-family]')
+  if (optionalButton) {
+    const family = optionalButton.dataset.optionalFamily as ProductDemoOptionalNodeFamily
+    const action = optionalButton.dataset.optionalAction
+    currentGraph =
+      action === 'remove'
+        ? removeProductDemoOptionalNode(currentGraph, family)
+        : addProductDemoOptionalNode(currentGraph, family)
+    selection = []
+    void syncGraph()
+    return
+  }
+
+  const quickActionButton = target.closest<HTMLButtonElement>('[data-quick-action]')
+  if (quickActionButton) {
+    void runQuickAction(quickActionButton.dataset.quickAction as QuickActionKey)
+    return
+  }
+
+  const openLinkButton = target.closest<HTMLButtonElement>('[data-open-link]')
+  if (openLinkButton?.dataset.openLink === 'runtime-lab') {
+    window.location.href = 'http://127.0.0.1:44175/'
+    return
+  }
+
+  if (openLinkButton?.dataset.openLink === 'embed-guide') {
+    window.location.href = '/docs/adoption/web-component.md'
+  }
+})
+
 const editor = await createWorkflowEditor({
   mount,
   graph: currentGraph,
   shellMode: 'stage-only',
   theme: {
-    accent: '#14b8a6',
-    nodeSelected: '#14b8a6',
+    accent: '#8b5cf6',
+    nodeSelected: '#8b5cf6',
   },
   preferences: {
     editability: 'editable',
@@ -119,14 +263,18 @@ const editor = await createWorkflowEditor({
   },
 })
 
+editorController = editor
+
 editor.element.addEventListener('ready', (event) => {
   const detail = (event as CustomEvent<EngineEvent>).detail
   if (detail.type !== 'ready') {
     return
   }
 
-  diagnostics = applyReadyDiagnostics(diagnostics, detail)
-  renderPanels()
+  runtimeProof.backend = detail.backend
+  runtimeProof.kernel = detail.kernelSource
+  runtimeProof.fallback = detail.fallbackReason ?? 'Fallback visible enabled'
+  renderRuntime()
 })
 
 editor.element.addEventListener('stats', (event) => {
@@ -135,8 +283,9 @@ editor.element.addEventListener('stats', (event) => {
     return
   }
 
-  diagnostics = applyStatsDiagnostics(diagnostics, detail)
-  renderPanels()
+  runtimeProof.stats = `${detail.nodeCount}n · ${detail.edgeCount}e · ${detail.zoom.toFixed(2)}x`
+  renderRuntime()
+  renderCanvasTitle()
 })
 
 editor.element.addEventListener('selection', (event) => {
@@ -146,13 +295,7 @@ editor.element.addEventListener('selection', (event) => {
   }
 
   selection = detail.selected
-  const selectedNodeId = detail.selected[0]?.id
-
-  if (isBuilderNodeId(selectedNodeId)) {
-    activeNodeId = selectedNodeId
-  }
-
-  renderPanels()
+  renderPreview()
 })
 
 editor.element.addEventListener('change', (event) => {
@@ -162,248 +305,172 @@ editor.element.addEventListener('change', (event) => {
   }
 
   currentGraph = detail.graph
-  ensureActiveNode()
-  renderPanels()
+  renderShell()
 })
 
-app.addEventListener('click', (event) => {
-  const target = event.target
-  if (!(target instanceof HTMLElement)) {
-    return
-  }
+renderShell()
+renderRuntime()
 
-  const flowButton = target.closest<HTMLButtonElement>('[data-flow-node]')
-  if (flowButton) {
-    const nodeId = flowButton.dataset.flowNode
-
-    if (isBuilderNodeId(nodeId)) {
-      activeNodeId = nodeId
-      renderPanels()
-    }
-
-    return
-  }
-
-  const toggleButton = target.closest<HTMLButtonElement>('[data-optional-node-family]')
-  if (toggleButton) {
-    const family = toggleButton.dataset.optionalNodeFamily
-    const action = toggleButton.dataset.optionalNodeAction
-
-    if (!isOptionalNodeFamily(family)) {
-      return
-    }
-
-    if (action === 'add') {
-      void commitGraph(addProductDemoOptionalNode(currentGraph, family))
-      return
-    }
-
-    if (action === 'remove') {
-      void commitGraph(removeProductDemoOptionalNode(currentGraph, family))
-    }
-  }
-})
-
-app.addEventListener('change', (event) => {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
-
-  if (target.dataset.builderControl === 'template') {
-    templateState = target.value as ProductDemoTemplateKey
-    void commitGraph(setProductDemoTemplate(currentGraph, templateState))
-    return
-  }
-
-  if (!isBuilderNodeId(target.dataset.nodeId)) {
-    return
-  }
-
-  const nodeId = target.dataset.nodeId
-
-  if (target.dataset.configControl === 'preset') {
-    void commitGraph(setProductDemoNodePreset(currentGraph, nodeId, target.value))
-    return
-  }
-
-  if (target.dataset.configControl === 'status') {
-    void commitGraph(
-      setProductDemoNodeStatus(
-        currentGraph,
-        nodeId,
-        target.value as SelectionSummary['status'],
-      ),
-    )
-  }
-})
-
-renderPanels()
-
-function renderPanels() {
-  const runtimeTitle = document.querySelector<HTMLElement>('[data-role="runtime-title"]')
-  const runtimeCopy = document.querySelector<HTMLElement>('[data-role="runtime-copy"]')
-  const templateSummary = document.querySelector<HTMLElement>('[data-role="template-summary"]')
-  const optionalNodeControls = document.querySelector<HTMLElement>(
-    '[data-role="optional-node-controls"]',
-  )
-  const configTitle = document.querySelector<HTMLElement>('[data-role="config-title"]')
-  const configCopy = document.querySelector<HTMLElement>('[data-role="config-copy"]')
-  const configForm = document.querySelector<HTMLElement>('[data-role="config-form"]')
-  const builderNodes = getProductDemoBuilderNodes(currentGraph)
-  const activeNode = builderNodes.find((node) => node.id === activeNodeId) ?? builderNodes[0]
+function renderShell() {
   const template = getProductDemoTemplateSummary(currentGraph)
-  const runtimeState =
-    diagnostics.lastEvent === null
-      ? {
-          title: 'Booting editor runtime...',
-          detail:
-            'Waiting for the custom element to report backend, kernel, and fallback state.',
-        }
-      : {
-          title: diagnostics.fallbackReason
-            ? `Fallback active on ${diagnostics.backend}`
-            : `${diagnostics.backend} runtime is active`,
-          detail: diagnostics.fallbackReason
-            ? `${diagnostics.backend} / ${diagnostics.kernelSource} · ${diagnostics.fallbackReason}`
-            : `${diagnostics.backend} / ${diagnostics.kernelSource}`,
-        }
+  const nodes = getProductDemoBuilderNodes(currentGraph)
+  const activeNode = nodes.find((node) => node.id === activeNodeId) ?? nodes[0]
+  const optionalOptions = getProductDemoOptionalNodeOptions(currentGraph)
 
-  document
-    .querySelectorAll<HTMLSelectElement>('[data-builder-control="template"]')
-    .forEach((select) => {
-      select.value = template.key
-    })
-
-  templateSummary!.innerHTML = `
-    <strong>${template.label}</strong>
-    <p>${template.summary}</p>
-  `
-
-  optionalNodeControls!.innerHTML = getProductDemoOptionalNodeOptions(currentGraph)
+  templateStrip.innerHTML = templateOptions
     .map(
       (option) => `
-        <article class="toggle-card is-compact">
-          <div class="toggle-header">
-            <strong>${option.label}</strong>
-            <span class="toggle-meta">${option.activeCount}/${option.maxCount}</span>
-          </div>
-          <div class="toggle-actions">
-            ${
-              option.canAdd
-                ? `
-                  <button
-                    class="toggle-button"
-                    data-optional-node-family="${option.family}"
-                    data-optional-node-action="add"
-                    type="button"
-                  >
-                    Add ${option.label.toLowerCase()}
-                  </button>
-                `
-                : ''
-            }
-            ${
-              option.canRemove
-                ? `
-                  <button
-                    class="toggle-button is-secondary"
-                    data-optional-node-family="${option.family}"
-                    data-optional-node-action="remove"
-                    type="button"
-                  >
-                    Remove ${option.label.toLowerCase()}
-                  </button>
-                `
-                : ''
-            }
-          </div>
-        </article>
+        <button
+          class="template-pill${option.key === template.key ? ' is-active' : ''}"
+          data-template-key="${option.key}"
+          type="button"
+        >
+          <strong>${option.label}</strong>
+          <span>${option.summary}</span>
+        </button>
       `,
     )
     .join('')
 
-  runtimeTitle!.textContent = runtimeState.title
-  runtimeCopy!.textContent = runtimeState.detail
+  flowList.innerHTML = nodes
+    .map(
+      (node, index) => `
+        <button
+          class="flow-step${node.id === activeNode.id ? ' is-active' : ''}"
+          data-node-id="${node.id}"
+          type="button"
+        >
+          <span class="step-order">${index + 1}</span>
+          <div>
+            <strong>${node.label}</strong>
+            <span>${node.currentTitle}</span>
+          </div>
+        </button>
+      `,
+    )
+    .join('')
 
-  if (!activeNode) {
-    configTitle!.textContent = 'Select a builder step'
-    configCopy!.textContent = 'Choose a step on the stage to review and adjust it here.'
-    configForm!.innerHTML = ''
-  } else {
-    activeNodeId = activeNode.id
-    configTitle!.textContent = `${activeNode.currentTitle} · ${activeNode.slotLabel}`
-    configCopy!.textContent = activeNode.panelCopy
-    configForm!.innerHTML = `
-      <label>
-        <span>${activeNode.presetLabel}</span>
-        <select data-config-control="preset" data-node-id="${activeNode.id}">
-          ${activeNode.presetOptions
-            .map(
-              (preset) =>
-                `<option value="${preset.key}"${
-                  preset.key === activeNode.currentPresetKey ? ' selected' : ''
-                }>${preset.label}</option>`,
-            )
-            .join('')}
-        </select>
-      </label>
-      <label>
-        <span>Status</span>
-        <select data-config-control="status" data-node-id="${activeNode.id}">
-          ${(['idle', 'ready', 'running'] as const)
-            .map(
-              (status) =>
-                `<option value="${status}"${
-                  status === activeNode.currentStatus ? ' selected' : ''
-                }>${status}</option>`,
-            )
-            .join('')}
-        </select>
-      </label>
-      <div class="config-note">
-        <strong>Current step</strong>
-        <p>${activeNode.currentSubtitle}</p>
-      </div>
-    `
-  }
+  optionalList.innerHTML = optionalOptions
+    .map(
+      (option) => `
+        <div class="option-card">
+          <div>
+            <strong>${option.label}</strong>
+            <span>${option.summary}</span>
+          </div>
+          <button
+            class="utility-button"
+            data-optional-family="${option.family}"
+            data-optional-action="${option.enabled ? 'remove' : 'add'}"
+            type="button"
+          >
+            ${option.enabled ? 'Remove' : 'Add'}
+          </button>
+        </div>
+      `,
+    )
+    .join('')
+
+  previewKicker.textContent = `${template.label} · constrained builder flow`
+  previewTitle.textContent = 'Trusted result surface for this flow'
+  previewSummary.textContent = `This preview shows the product outcome of the currently supported flow. You can switch templates, focus steps, and add supported branches without leaving the runtime-safe builder contract.`
+  previewNodeTitle.textContent = activeNode.currentTitle
+  previewNodeSubtitle.textContent = activeNode.currentSubtitle
+  previewTeam.textContent = template.targetTeam
+  previewTarget.textContent = template.deployTargets[0] ?? 'Embeddable product shell'
+
+  builderTruthCard.innerHTML = `
+    <span class="meta-label">Builder truth</span>
+    <strong>Allowed edits: switch template, focus trusted steps, add review, add follow-up.</strong>
+    <p>This demo is intentionally constrained. It favors production trust over unrestricted node authoring.</p>
+  `
+
+  renderCanvasTitle()
+  renderPreview()
 }
 
-async function commitGraph(nextGraph: GraphDocument) {
-  currentGraph = nextGraph
-  selection = selection.filter((item) => nextGraph.nodes.some((node) => node.id === item.id))
-  ensureActiveNode()
-  renderPanels()
-  await editor.setGraph(nextGraph)
+function renderCanvasTitle() {
+  const template = getProductDemoTemplateSummary(currentGraph)
+  canvasTitle.textContent = `${template.label} flow · ${runtimeProof.stats}`
 }
 
-function ensureActiveNode() {
-  const builderNodes = getProductDemoBuilderNodes(currentGraph)
+function renderPreview() {
+  const activeNode = getProductDemoBuilderNodes(currentGraph).find((node) => node.id === activeNodeId)
 
-  if (builderNodes.length === 0) {
+  if (selection.length > 0) {
+    selectionCard.innerHTML = selection
+      .map(
+        (item) => `
+          <div>
+            <span class="meta-label">Canvas selection</span>
+            <strong>${item.title}</strong>
+            <p>${item.type} · ${item.status}</p>
+          </div>
+        `,
+      )
+      .join('')
     return
   }
 
-  if (!builderNodes.some((node) => node.id === activeNodeId)) {
-    activeNodeId = builderNodes[0].id
+  selectionCard.innerHTML = `
+    <span class="meta-label">Focused step</span>
+    <strong>${activeNode?.panelTitle ?? 'Workflow step'}</strong>
+    <p>${activeNode?.panelCopy ?? 'Select a trusted step from the rail or the stage to inspect its product meaning here.'}</p>
+  `
+}
+
+function renderRuntime() {
+  runtimeBackend.textContent = `Renderer · ${runtimeProof.backend}`
+  runtimeKernel.textContent = `Kernel · ${runtimeProof.kernel}`
+  runtimeFallback.textContent = `Fallback · ${runtimeProof.fallback}`
+}
+
+async function runQuickAction(action: QuickActionKey) {
+  switch (action) {
+    case 'focus-trigger':
+      activeNodeId = 'trigger'
+      renderShell()
+      return
+    case 'focus-context':
+      activeNodeId = 'research'
+      renderShell()
+      return
+    case 'focus-publish':
+      activeNodeId = 'publish'
+      renderShell()
+      return
+    case 'toggle-review':
+      currentGraph = toggleOptionalFamily('review')
+      break
+    case 'toggle-follow-up':
+      currentGraph = toggleOptionalFamily('action')
+      break
   }
+
+  selection = []
+  await syncGraph()
 }
 
-function isBuilderNodeId(value: string | undefined): value is ProductDemoBuilderNodeId {
-  return (
-    value === 'trigger' ||
-    value === 'classify' ||
-    value === 'research' ||
-    value === 'review' ||
-    value === 'publish' ||
-    value === 'action' ||
-    value === 'action-2' ||
-    value === 'action-3'
-  )
+function toggleOptionalFamily(family: ProductDemoOptionalNodeFamily): GraphDocument {
+  const option = getProductDemoOptionalNodeOptions(currentGraph).find((item) => item.family === family)
+  if (!option) {
+    return currentGraph
+  }
+
+  return option.enabled
+    ? removeProductDemoOptionalNode(currentGraph, family)
+    : addProductDemoOptionalNode(currentGraph, family)
 }
 
-function isOptionalNodeFamily(
-  value: string | undefined,
-): value is ProductDemoOptionalNodeFamily {
-  return value === 'review' || value === 'action'
+async function syncGraph() {
+  renderShell()
+  await editorController?.setGraph(currentGraph)
+}
+
+function query<T extends Element>(selector: string): T {
+  const element = root.querySelector<T>(selector)
+  if (!element) {
+    throw new Error(`Expected element for selector: ${selector}`)
+  }
+  return element
 }

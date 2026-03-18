@@ -1,135 +1,58 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('product demo web component surface', () => {
-  test('keeps practical workflow controls above the fold on first render', async ({
-    page,
-  }) => {
+test.describe('production builder constrained surface', () => {
+  test('shows constrained-builder framing with graph and result together', async ({ page }) => {
     await page.goto('/')
 
-    const templateControl = page.locator('select[data-builder-control="template"]')
-    const addButton = page.getByRole('button', { name: 'Add follow-up action' })
-    const editor = page.locator('workflow-editor')
-    const configPanel = page.locator('[data-role="config-form"]')
-
-    await expect(templateControl).toBeVisible()
-    await expect(addButton).toBeVisible()
-    await expect(editor).toBeVisible()
-    await expect(configPanel).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Trusted flow builder for embedded agent products' })).toBeVisible()
+    await expect(page.getByText('Constrained production builder')).toBeVisible()
+    await expect(page.getByText('Template-backed editing')).toBeVisible()
+    await expect(page.locator('.builder-stage')).toBeVisible()
+    await expect(page.locator('.preview-pane')).toBeVisible()
+    await expect(page.locator('workflow-editor')).toBeVisible()
+    await expect(page.getByText('Builder truth')).toBeVisible()
+    await expect(page.getByText('Advanced Graph')).toHaveCount(0)
   })
 
-  test('renders the builder-first shell for the starter flow', async ({ page }) => {
+  test('supports truthful quick actions instead of fake prompt editing', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText('Production Agent Builder')).toBeVisible()
-    await expect(
-      page.getByText('내 서비스에 바로 붙일 수 있는 빌더를 지금 바로 만져봅니다.'),
-    ).toBeVisible()
-    await expect(page.getByText('Node Inspector', { exact: true })).toBeVisible()
-    await expect(page.getByText('Starter template')).toBeVisible()
-    await expect(page.getByText('노드를 직접 보고 움직이는 프로덕션 빌더 화면')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Performance Lab' })).toHaveCount(0)
-    await expect(page.getByText('Diagnostics', { exact: true })).toHaveCount(0)
-    await expect(page.locator('[data-role="runtime-title"]')).toContainText(/runtime|Fallback/)
-    await expect(page.locator('workflow-editor')).toHaveCount(1)
+    await page.getByRole('button', { name: 'Focus context step' }).click()
+    await expect(page.locator('[data-role="selection-card"]')).toContainText('Context step configuration')
+
+    await page.getByRole('button', { name: 'Focus publish step' }).click()
+    await expect(page.locator('[data-role="selection-card"]')).toContainText('Publish step configuration')
   })
 
-  test('stays distinct from performance lab controls while exposing bounded node actions', async ({
-    page,
-  }) => {
+  test('keeps graph interaction and runtime proof visible on the constrained shell', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.locator('button[data-fixture]')).toHaveCount(0)
-    await expect(page.locator('select[data-control="editability"]')).toHaveCount(0)
-    await expect(page.locator('select[data-control="rendererPreference"]')).toHaveCount(0)
-    await expect(page.locator('select[data-control="kernelPreference"]')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Add follow-up action' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Remove approval gate' })).toBeVisible()
-  })
-
-  test('turns the runtime snapshot into a concrete engine status', async ({ page }) => {
-    await page.goto('/')
-
-    const runtimeTitle = page.locator('[data-role="runtime-title"]')
-    const runtimeCopy = page.locator('[data-role="runtime-copy"]')
-
-    await expect(runtimeTitle).not.toHaveText('Booting editor runtime...')
-    await expect(runtimeCopy).toContainText(/canvas2d|webgl/i)
-    await expect(runtimeCopy).toContainText(/fallback|rust-wasm|typescript-fallback/i)
-  })
-
-  test('opens a builder step in the side panel from the canvas selection flow', async ({ page }) => {
-    await page.goto('/')
-
-    await page.locator('workflow-editor').locator('canvas').click({
-      position: { x: 450, y: 520 },
+    await page.evaluate(() => {
+      const editor = document.querySelector('workflow-editor')
+      const bucket = [] as Array<{ nodeCount: number; edgeCount: number }>
+      ;(window as Window & { __demoChanges?: typeof bucket }).__demoChanges = bucket
+      editor?.addEventListener('change', (event) => {
+        const detail = (event as CustomEvent<{ type: string; graph: { nodes: unknown[]; edges: unknown[] } }>).detail
+        if (detail.type === 'change') {
+          bucket.push({
+            nodeCount: detail.graph.nodes.length,
+            edgeCount: detail.graph.edges.length,
+          })
+        }
+      })
     })
 
-    await expect(page.locator('[data-role="config-title"]')).toContainText(
-      'Webhook intake',
-    )
-  })
+    await page.getByRole('button', { name: 'Toggle review gate' }).click()
 
-  test('mirrors stage selection into the config panel', async ({ page }) => {
-    await page.goto('/')
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          () => (window as Window & { __demoChanges?: unknown[] }).__demoChanges?.length ?? 0,
+        ),
+      )
+      .toBeGreaterThan(0)
 
-    await page.locator('workflow-editor').locator('canvas').click({
-      position: { x: 156, y: 182 },
-    })
-
-    await expect(page.locator('[data-role="config-title"]')).toContainText(
-      'Webhook intake',
-    )
-  })
-
-  test('updates builder configuration from the side panel', async ({ page }) => {
-    await page.goto('/')
-
-    await page
-      .locator('select[data-config-control="preset"][data-node-id="trigger"]')
-      .selectOption('trigger-alert')
-
-    await expect(page.locator('[data-role="config-title"]')).toContainText('Alert monitor')
-  })
-
-  test('keeps template-first starter flow swaps inside the builder shell', async ({ page }) => {
-    await page.goto('/')
-
-    await page.locator('select[data-builder-control="template"]').selectOption(
-      'ops-incident',
-    )
-
-    await expect(page.locator('[data-role="template-summary"]')).toContainText(
-      'Ops incident',
-    )
-  })
-
-  test('adds the supported follow-up action through constrained controls', async ({ page }) => {
-    await page.goto('/')
-
-    await page.getByRole('button', { name: 'Add follow-up action' }).click()
-
-    await expect(page.locator('workflow-editor')).toContainText('6n · 6e')
-    await expect(page.getByText('1/3')).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: 'Remove follow-up action' }),
-    ).toBeVisible()
-  })
-
-  test('supports adding more than one bounded follow-up action node', async ({ page }) => {
-    await page.goto('/')
-
-    await page.getByRole('button', { name: 'Add follow-up action' }).click()
-    await page.getByRole('button', { name: 'Add follow-up action' }).click()
-
-    await expect(page.locator('workflow-editor')).toContainText('7n · 7e')
-    await expect(page.getByText('2/3')).toBeVisible()
-  })
-
-  test('removes the supported approval gate through constrained controls', async ({ page }) => {
-    await page.goto('/')
-
-    await page.getByRole('button', { name: 'Remove approval gate' }).click()
-
-    await expect(page.getByRole('button', { name: 'Add approval gate' })).toBeVisible()
+    await expect(page.locator('[data-role="runtime-backend"]')).toContainText(/Renderer ·/)
+    await expect(page.locator('[data-role="runtime-fallback"]')).toContainText(/Fallback ·/)
   })
 })
