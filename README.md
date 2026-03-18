@@ -15,7 +15,7 @@ pnpm demo:web-component
 
 This launches the primary **Reference App** for the `Web Component` integration path.
 
-## What this repository provides
+## What this repo is for
 
 - reusable workflow/agent builder runtime packages
 - `Web Component` as the primary integration surface
@@ -23,73 +23,28 @@ This launches the primary **Reference App** for the `Web Component` integration 
 - a WASM kernel seam with a safe TypeScript fallback
 - reference examples for embedding and runtime evaluation
 
-## What this repository is not
+## What this repo is not
 
-This repository is not a hosted collaboration product, deployment control plane, or finished support/sales/ops SaaS.
+- not a hosted collaboration product
+- not a deployment control plane
+- not a finished support / sales / ops SaaS
 
-It is the reusable builder foundation plus a small set of reference examples.
-
-## Open source boundary
-
-This repository is intended to work like an **open-core builder foundation**, closer to a reusable engine than to a single hosted SaaS product.
-
-### What is open source here
-
-The open-source contract is the reusable builder foundation:
-
-- graph/runtime packages
-- WASM kernel seam
-- worker/runtime event contract
-- renderers
-- `Web Component` and `React` adapters
-- reference demo apps that show how the foundation behaves
-
-### What the examples mean
-
-The examples are **reference surfaces**, not the only product this repo can represent.
-
-- `Reference App` shows one builder-shaped shell teams can adapt
-- `Performance Example` shows one runtime-evaluation surface teams can inspect
-- template choices such as support / sales / ops are examples of how a domain can be expressed on top of the foundation
-
-That means adopters are expected to bring their own domain:
-
-- customer support
-- internal approvals
-- operations workflows
-- AI agent orchestration
-- other graph-driven builders
-
-### What is not claimed by the OSS boundary
-
-This repo does **not** currently claim to be a full managed product for:
-
-- hosted team collaboration
-- deployment control plane
-- template marketplace
-- enterprise operations/support workflow
-
-Those can exist later as product layers, but the repository itself is the reusable core plus reference surfaces.
+Support / sales / ops flows in this repository are **reference domains**, not the only intended domains.
 
 ## Examples
 
-- `Reference App` (`pnpm demo:web-component`) — start here
-- `Performance Example` (`pnpm demo:performance-lab`) — runtime evaluation surface
-- `React Example` (`pnpm demo:react`) — secondary host example
+- `Reference App` — `pnpm demo:web-component`
+- `Performance Example` — `pnpm demo:performance-lab`
+- `React Example` — `pnpm demo:react`
 
-## Reference domains
+## Current baseline
 
-Support / sales / ops flows in this repository are **reference domains**.
-
-They show how a real domain can sit on top of the foundation, but they are not the only intended domains.
-
-## Current runtime baseline
-
-- `Web Component` is the primary integration path
-- `React` stays a secondary host wrapper
-- the graph stage stays on an engine-shaped path
-- a runnable minimum example exists from a clean checkout
+- `Web Component` is the primary path
+- `React` is a secondary host wrapper
 - benchmark fixtures for `100`, `500`, and `1000` nodes are committed
+- the runtime keeps a clear `rust-wasm` vs `typescript-fallback` seam
+
+For the OSS positioning and boundary details, see [Open source model](./docs/product/open-source-model.md).
 
 ## Reference App
 
