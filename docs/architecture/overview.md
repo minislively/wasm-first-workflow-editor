@@ -19,6 +19,7 @@ The non-UI core now follows a clearer ownership model:
   - owns graph mutation helpers
   - owns derived graph state such as node indexes, adjacency, and cached bounds/counts
   - exposes query helpers that the worker and renderers can reuse without rebuilding the same structure repeatedly
+  - keeps a small compatibility wrapper layer for older helper calls, but the preferred path is the derived-state API
 - `workflow-types`
   - owns the shared persisted document contract
   - keeps common product metadata typed while still leaving room for host-specific metadata through `metadata.extensions`

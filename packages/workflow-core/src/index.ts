@@ -42,26 +42,19 @@ export type GraphDerivedState = {
   bounds?: GraphBounds
 }
 
+/**
+ * @deprecated Prefer `findNodeAtFromDerivedState` with a reused `GraphDerivedState`
+ * on repeated interaction paths.
+ */
 export function findNodeAt(
   graph: GraphDocument,
   point: Point,
 ): WorkflowNode | undefined {
-  for (let index = graph.nodes.length - 1; index >= 0; index -= 1) {
-    const node = graph.nodes[index]
-    const right = node.position.x + node.size.width
-    const bottom = node.position.y + node.size.height
-
-    if (
-      point.x >= node.position.x &&
-      point.x <= right &&
-      point.y >= node.position.y &&
-      point.y <= bottom
-    ) {
-      return node
-    }
-  }
-
-  return undefined
+  return findNodeAtFromNodeIndex(
+    createNodeIndex(graph),
+    graph.nodes.map((node) => node.id),
+    point,
+  )
 }
 
 export function moveNode(
@@ -113,18 +106,23 @@ export function clampZoom(zoom: number): number {
   return clampZoomKernel(zoom)
 }
 
+/**
+ * @deprecated Prefer `getSelectionSummaryFromIndex` with a reused node index on
+ * repeated interaction paths.
+ */
 export function getSelectionSummary(
   graph: GraphDocument,
   selectionIds: string[],
 ): SelectionSummary[] {
-  return graph.nodes
-    .filter((node) => selectionIds.includes(node.id))
-    .map((node) => ({
-      id: node.id,
-      title: node.title,
-      type: node.type,
-      status: node.status,
-    }))
+  const selectedIdSet = new Set(selectionIds)
+
+  return graph.nodes.flatMap((node) => {
+    if (!selectedIdSet.has(node.id)) {
+      return []
+    }
+
+    return [toSelectionSummary(node)]
+  })
 }
 
 export function createNodeIndex(
@@ -196,27 +194,11 @@ export function findNodeAtFromDerivedState(
   derivedState: GraphDerivedState,
   point: Point,
 ): WorkflowNode | undefined {
-  for (let index = derivedState.orderedNodeIds.length - 1; index >= 0; index -= 1) {
-    const node = derivedState.nodeById.get(derivedState.orderedNodeIds[index])
-
-    if (!node) {
-      continue
-    }
-
-    const right = node.position.x + node.size.width
-    const bottom = node.position.y + node.size.height
-
-    if (
-      point.x >= node.position.x &&
-      point.x <= right &&
-      point.y >= node.position.y &&
-      point.y <= bottom
-    ) {
-      return node
-    }
-  }
-
-  return undefined
+  return findNodeAtFromNodeIndex(
+    derivedState.nodeById,
+    derivedState.orderedNodeIds,
+    point,
+  )
 }
 
 export function getSelectionSummaryFromIndex(
@@ -230,12 +212,7 @@ export function getSelectionSummaryFromIndex(
       return []
     }
 
-    return [{
-      id: node.id,
-      title: node.title,
-      type: node.type,
-      status: node.status,
-    }]
+    return [toSelectionSummary(node)]
   })
 }
 
@@ -291,5 +268,42 @@ export function updateDerivedStateForNodeMove(
             height: nextBounds.maxY - nextBounds.minY,
           }
         : nextBounds,
+  }
+}
+
+function findNodeAtFromNodeIndex(
+  nodeById: ReadonlyMap<string, WorkflowNode>,
+  orderedNodeIds: readonly string[],
+  point: Point,
+): WorkflowNode | undefined {
+  for (let index = orderedNodeIds.length - 1; index >= 0; index -= 1) {
+    const node = nodeById.get(orderedNodeIds[index])
+
+    if (!node) {
+      continue
+    }
+
+    const right = node.position.x + node.size.width
+    const bottom = node.position.y + node.size.height
+
+    if (
+      point.x >= node.position.x &&
+      point.x <= right &&
+      point.y >= node.position.y &&
+      point.y <= bottom
+    ) {
+      return node
+    }
+  }
+
+  return undefined
+}
+
+function toSelectionSummary(node: WorkflowNode): SelectionSummary {
+  return {
+    id: node.id,
+    title: node.title,
+    type: node.type,
+    status: node.status,
   }
 }
