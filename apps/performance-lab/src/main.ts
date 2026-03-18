@@ -46,12 +46,12 @@ app.innerHTML = `
   <main class="page">
     <section class="hero-card">
       <div>
-        <p class="eyebrow">runtime evaluation surface</p>
-        <h1>Performance Lab is now a dedicated app.</h1>
+        <p class="eyebrow">runtime evaluation example</p>
+        <h1>Performance Example is a dedicated runtime check surface.</h1>
         <p class="lede">
           Load public fixtures, force runtime preferences, and inspect the active
           backend and kernel without carrying that diagnostic weight in the
-          product demo.
+          main reference app.
         </p>
       </div>
       <div class="hero-stack">
@@ -63,7 +63,7 @@ app.innerHTML = `
     <section class="surface-shell">
       <div class="surface-header">
         <div>
-          <div class="panel-label">Performance Lab</div>
+          <div class="panel-label">Performance Example</div>
           <strong class="surface-title">Evaluation mode for performance-sensitive teams</strong>
         </div>
         <div class="surface-summary">

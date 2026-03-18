@@ -1,7 +1,7 @@
 # React Host Guidance
 
 `@minislively/workflow-react` exists for React host convenience, not as the primary architecture surface or the representative product story.
-Treat it as technical support for teams whose surrounding shell already runs in React, after the Product Demo and `Web Component` contract have established the primary product path.
+Treat it as technical support for teams whose surrounding shell already runs in React, after the Reference App and `Web Component` contract have established the primary path.
 
 ## Positioning
 
@@ -54,5 +54,5 @@ If the React layer starts owning graph-stage interaction state, the product drif
 The recommended sequence is:
 
 1. validate the product contract with the `Web Component` path first
-2. use `Performance Lab` to validate heavier fixtures, runtime selection, and fallback reporting
+2. use `Performance Example` to validate heavier fixtures, runtime selection, and fallback reporting
 3. adopt the React wrapper when React is the host-shell requirement, not the reason the editor exists

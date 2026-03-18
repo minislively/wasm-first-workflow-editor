@@ -42,10 +42,10 @@ let activeNodeId: ProductDemoBuilderNodeId = 'trigger'
 app.innerHTML = `
   <main class="page">
     <section class="mission-strip">
-      <p class="eyebrow">Product Demo</p>
-      <h1>Production Agent Builder</h1>
+      <p class="eyebrow">Reference App</p>
+      <h1>Embeddable Workflow Builder Reference</h1>
       <p class="mission-copy">
-        A representative builder shell your team can drop into a product and evaluate immediately.
+        Start here to see the primary Web Component integration path in a builder-shaped reference shell.
       </p>
     </section>
     <section class="surface-shell">
@@ -55,10 +55,10 @@ app.innerHTML = `
             <div class="builder-banner">
               <div class="builder-banner-copy">
                 <div class="panel-label">Live Canvas</div>
-                <strong>See the stage, inspect each step, and tune the starter flow in place.</strong>
+                <strong>See the stage, inspect each step, and adapt the reference flow in place.</strong>
               </div>
               <div class="builder-banner-meta">
-                <p>The product-facing builder surface stays interactive without turning into a lab console.</p>
+                <p>This reference surface stays interactive without turning into a runtime-evaluation console.</p>
               </div>
               <div class="builder-banner-controls">
                 <label class="template-picker">

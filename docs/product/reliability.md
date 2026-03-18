@@ -1,7 +1,7 @@
 # Public Surface Reliability
 
-This repository treats `Product Demo` and `Performance Lab` as public surfaces, not internal-only examples.
-`Product Demo` is the representative product screen. `Performance Lab` is the proof surface that validates the runtime behind it.
+This repository treats the `Reference App` and `Performance Example` as public example surfaces, not internal-only examples.
+`Reference App` is the primary embed example. `Performance Example` is the proof surface that validates the runtime behind it.
 
 The reliability rule is simple:
 
@@ -10,22 +10,22 @@ The reliability rule is simple:
 
 ## Surface split
 
-### Product Demo
+### Reference App
 
-`apps/demo-web-component` is the first-run product surface:
+`apps/demo-web-component` is the first-run reference surface:
 
 - constrained builder shell around the `basic` graph
 - editing-capable stage baseline with side-panel configuration
 - template-first starter flow inside the builder surface
 - constrained add/remove of the supported approval and follow-up node families
 - lightweight runtime snapshot instead of diagnostics-heavy evaluation panels
-- representative story for how an adopter would embed the builder in a production shell
+- representative story for how an adopter would embed the foundation in a real shell
 
 This keeps the visible contract narrow enough to stay trustworthy.
 
-### Performance Lab
+### Performance Example
 
-`apps/performance-lab` is the evaluation surface:
+`apps/performance-lab` is the evaluation example:
 
 - public fixtures: `basic / 100 / 500 / 1000`
 - explicit runtime controls for `editability`, `rendererPreference`, and `kernelPreference`
@@ -42,9 +42,9 @@ The current codebase supports these public expectations:
 - `basic` is the product-oriented editable builder baseline
 - `100` is the default lab baseline for editing and diagnostics comparison
 - `500 / 1000` default to the Supported read-only contract with explicit tier-policy messaging
-- Product Demo exposes stage interaction, host-owned config flow, and constrained add/remove controls without taking over the graph hot path
+- Reference App exposes stage interaction, host-owned config flow, and constrained add/remove controls without taking over the graph hot path
 - diagnostics expose backend, kernel source, counts, zoom, and fallback state through public events
-- browser tests cover the builder shell promises plus the visible split between Product Demo and Performance Lab
+- browser tests cover the example-shell promises plus the visible split between Reference App and Performance Example
 
 ## Heavy-tier reliability contract
 

@@ -4,10 +4,11 @@ test.use({
   baseURL: process.env.PLAYWRIGHT_PERFORMANCE_LAB_BASE_URL ?? 'http://127.0.0.1:44175',
 })
 
-test.describe('performance lab surface', () => {
+test.describe('performance example surface', () => {
   test('lab defaults to the diagnostics-forward evaluation state', async ({ page }) => {
     await page.goto('/')
 
+    await expect(page.getByText('Performance Example', { exact: true })).toBeVisible()
     await expect(
       page.getByText('Evaluation mode for performance-sensitive teams'),
     ).toBeVisible()
