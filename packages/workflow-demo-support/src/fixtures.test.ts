@@ -10,7 +10,7 @@ import {
   getProductDemoGraph,
   getProductDemoOptionalNodeOptions,
   getProductDemoTemplateSummary,
-  isSupportedTierFixture,
+  isSupportedDefaultFixture,
   removeProductDemoOptionalNode,
   resolvePerformanceLabEditability,
   setProductDemoNodePreset,
@@ -171,8 +171,8 @@ describe('workflow-demo-support fixtures', () => {
   })
 
   it('requires an explicit override to enable editing on Supported tiers', () => {
-    expect(isSupportedTierFixture('basic')).toBe(false)
-    expect(isSupportedTierFixture('500')).toBe(true)
+    expect(isSupportedDefaultFixture('basic')).toBe(false)
+    expect(isSupportedDefaultFixture('500')).toBe(true)
     expect(resolvePerformanceLabEditability('500', 'editable', false)).toBe('read-only')
     expect(resolvePerformanceLabEditability('500', 'editable', true)).toBe('editable')
   })

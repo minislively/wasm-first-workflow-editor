@@ -261,7 +261,7 @@ function renderPanels() {
   const selectionList = document.querySelector<HTMLElement>('[data-role="selection-list"]')
   const summary = createPerformanceLabSummary(state, diagnostics)
   const fixtureContract = getFixtureInteractionContract(state.fixture)
-  const supportedTierLocked = summary.supportedByDefault && !state.allowExperimentalEditing
+  const supportedDefaultLocked = summary.hasSupportedDefault && !state.allowExperimentalEditing
   const comparisonRows = [
     {
       label: 'Editability intent',
@@ -297,13 +297,13 @@ function renderPanels() {
           detail:
             'The lab is applying the latest fixture or preference change. Compare requested and active rows after the next diagnostics event lands.',
         }
-      : supportedTierLocked
+      : supportedDefaultLocked
         ? {
             tone: 'warning',
             title: summary.capabilityTitle,
             detail: summary.capabilityDetail,
           }
-        : summary.supportedByDefault
+        : summary.hasSupportedDefault
           ? {
               tone: 'warning',
               title: summary.capabilityTitle,
@@ -330,11 +330,11 @@ function renderPanels() {
     const key = select.dataset.control as keyof RuntimePreferences
     select.value = String(state[key])
     if (key === 'editability') {
-      select.disabled = supportedTierLocked
+      select.disabled = supportedDefaultLocked
     }
   })
 
-  policyCard!.className = `panel-card policy-card ${supportedTierLocked ? 'tone-warning' : 'tone-info'}`
+  policyCard!.className = `panel-card policy-card ${supportedDefaultLocked ? 'tone-warning' : 'tone-info'}`
   policyCard!.innerHTML = fixtureContract.tier === 'supported'
     ? `
       <div class="panel-label">Tier Policy</div>
@@ -399,7 +399,7 @@ function renderPanels() {
         ['Requested editability', state.editability],
         ['Effective editability', summary.effectiveEditability],
         ['Active editability', diagnostics.preferences.editability],
-        ['Tier policy', supportedTierLocked ? 'supported default' : summary.supportedByDefault ? 'experimental override' : 'guaranteed'],
+        ['Tier policy', supportedDefaultLocked ? 'supported default' : summary.hasSupportedDefault ? 'experimental override' : 'guaranteed'],
         ['Fixture contract', summary.fixtureContractLabel],
         ['Requested renderer', state.rendererPreference],
         ['Active renderer pref', diagnostics.preferences.rendererPreference],
@@ -420,7 +420,7 @@ function renderPanels() {
   selectionList!.innerHTML =
     selection.length === 0
       ? `<div class="selection-empty">${
-          supportedTierLocked
+          supportedDefaultLocked
             ? `No selection. ${state.fixture} is currently navigation-only, so pan, zoom, and fixture switching stay live while editing remains gated.`
             : 'No selection. Drag, pan, zoom, and fixture switching all stay live.'
         }</div>`
